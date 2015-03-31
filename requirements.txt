@@ -1,11 +1,11 @@
 Flask==0.10.1
-Flask-Bcrypt==0.6.0
+Flask-Bcrypt==0.6.2
 Flask-Login==0.2.11
 Flask-Markdown==0.3
 Flask-SQLAlchemy==2.0
+matplotlib==1.4.3
 MySQL-python==1.2.5
-matplotlib==1.4.2
-newrelic==2.36.0.30
-pylint==1.3.1
-python-dateutil==2.2
-requests==2.4.3
+newrelic==2.48.0.38
+pylint==1.4.3
+python-dateutil==2.4.1
+requests==2.6.0
