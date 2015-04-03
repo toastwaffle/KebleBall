@@ -31,7 +31,7 @@ def initialise_db(prefill=True, clear=False):
     db.create_all()
 
     if clear:
-        prompt = input("Are you sure you wish to clear the entire database? ")
+        prompt = input(u"Are you sure you wish to clear the entire database? ")
         if prompt.lower() in ["yes", "y"]:
             Affiliation.query.delete()
             Announcement.query.delete()

@@ -188,7 +188,7 @@ def adminHome(page=1):
                 hasLogFilter = True
             except ValueError, TypeError:
                 flash(
-                    'Could not parse start date/time, ignoring.',
+                    u'Could not parse start date/time, ignoring.',
                     'warning'
                 )
 
@@ -202,7 +202,7 @@ def adminHome(page=1):
                 hasLogFilter = True
             except ValueError, TypeError:
                 flash(
-                    'Could not parse end date/time, ignoring.',
+                    u'Could not parse end date/time, ignoring.',
                     'warning'
                 )
 

@@ -64,7 +64,7 @@ class LogManager(object):
                 )
 
         raise AttributeError(
-                    "Logger instance has no attribute '{0}'".format(name)
+                    u"Logger instance has no attribute '{0}'".format(name)
                 )
 
     def log_event(self, message, tickets=[], user=None, transaction=None):

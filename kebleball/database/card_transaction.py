@@ -337,12 +337,12 @@ class CardTransaction(db.Model):
                         )
 
                         flash(
-                            'Your payment has completed successfully',
+                            u'Your payment has completed successfully',
                             'success'
                         )
                 else:
                     flash(
-                        'The card payment failed. You have not been charged.',
+                        u'The card payment failed. You have not been charged.',
                         'error'
                     )
 
@@ -367,7 +367,7 @@ class CardTransaction(db.Model):
         self.resultcode = 'CX'
 
         flash(
-            'Your payment has been cancelled; you have not been charged.',
+            u'Your payment has been cancelled; you have not been charged.',
             'info'
         )
 

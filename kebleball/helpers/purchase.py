@@ -21,8 +21,8 @@ def canBuy(user):
                     False,
                     0,
                     (
-                        "tickets are on limited release to current Keble members and "
-                        "Keble graduands only."
+                        u"tickets are on limited release to current Keble members and "
+                        u"Keble graduands only."
                     )
                 )
             elif not user.affiliation_verified:
@@ -30,8 +30,8 @@ def canBuy(user):
                     False,
                     0,
                     (
-                        "your affiliation has not been verified yet. You will be "
-                        "informed by email when you are able to purchase tickets."
+                        u"your affiliation has not been verified yet. You will be "
+                        u"informed by email when you are able to purchase tickets."
                     )
                 )
         else:
@@ -39,9 +39,9 @@ def canBuy(user):
                 False,
                 0,
                 (
-                    'tickets are currently not on sale. Tickets may become available '
-                    'for purchase or through the waiting list, please check back at a '
-                    'later date.'
+                    u'tickets are currently not on sale. Tickets may become available '
+                    u'for purchase or through the waiting list, please check back at a '
+                    u'later date.'
                 )
             )
 
@@ -50,7 +50,7 @@ def canBuy(user):
         return (
             False,
             0,
-            'there are currently people waiting for tickets.'
+            u'there are currently people waiting for tickets.'
         )
 
     unpaidTickets = user.tickets \
@@ -63,8 +63,8 @@ def canBuy(user):
             False,
             0,
             (
-                'you have too many unpaid tickets. Please pay '
-                'for your tickets before reserving any more.'
+                u'you have too many unpaid tickets. Please pay '
+                u'for your tickets before reserving any more.'
             )
         )
 
@@ -78,9 +78,9 @@ def canBuy(user):
                 False,
                 0,
                 (
-                    'you already own too many tickets. Please contact <a href="{0}">the '
-                    'ticketing officer</a> if you wish to purchase more than {1} '
-                    'tickets.'
+                    u'you already own too many tickets. Please contact <a href="{0}">the '
+                    u'ticketing officer</a> if you wish to purchase more than {1} '
+                    u'tickets.'
                 ).format(
                     app.config['TICKETS_EMAIL_LINK'],
                     app.config['MAX_TICKETS']
@@ -92,8 +92,8 @@ def canBuy(user):
                 False,
                 0,
                 (
-                    'you already own {0} tickets. During pre-release, only {0} '
-                    'tickets may be bought per person.'
+                    u'you already own {0} tickets. During pre-release, only {0} '
+                    u'tickets may be bought per person.'
                 ).format(
                     app.config['LIMITED_RELEASE_MAX_TICKETS']
                 )
@@ -106,9 +106,9 @@ def canBuy(user):
             False,
             0,
             (
-                'there are no tickets currently available. Tickets may become '
-                'available for purchase or through the waiting list, please '
-                'check back at a later date.'
+                u'there are no tickets currently available. Tickets may become '
+                u'available for purchase or through the waiting list, please '
+                u'check back at a later date.'
             )
         )
 
@@ -135,7 +135,7 @@ def canWait(user):
         return (
             False,
             0,
-            'the waiting list is currently closed.'
+            u'the waiting list is currently closed.'
         )
 
     ticketsOwned = user.tickets \
@@ -146,9 +146,9 @@ def canWait(user):
             False,
             0,
             (
-                'you have too many tickets. Please contact <a href="{0}">the '
-                'ticketing officer</a> if you wish to purchase more than {1} '
-                'tickets.'
+                u'you have too many tickets. Please contact <a href="{0}">the '
+                u'ticketing officer</a> if you wish to purchase more than {1} '
+                u'tickets.'
             ).format(
                 app.config['TICKETS_EMAIL_LINK'],
                 app.config['MAX_TICKETS']
@@ -161,9 +161,9 @@ def canWait(user):
             False,
             0,
             (
-                'you are already waiting for too many tickets. Please rejoin '
-                'the waiting list once you have been allocated the tickets '
-                'you are currently waiting for.'
+                u'you are already waiting for too many tickets. Please rejoin '
+                u'the waiting list once you have been allocated the tickets '
+                u'you are currently waiting for.'
             )
         )
 
