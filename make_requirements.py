@@ -7,15 +7,22 @@ packages in requirements-unversioned.txt - these being the packages which we
 need directly
 """
 
+from __future__ import unicode_literals
+
 import subprocess
 
-packages = []
+def main():
+    """Run the script."""
+    major_packages = []
 
-with open('requirements-unversioned.txt') as fh:
-    for line in fh:
-        packages.append(line.strip())
+    with open('requirements-unversioned.txt') as file_handle:
+        for line in file_handle:
+            major_packages.append(line.strip())
 
-with open('requirements.txt', 'w') as fh:
-    for line in subprocess.check_output(['pip', 'freeze']).split('\n'):
-        if line.split('==')[0] in packages:
-            fh.write(line + '\n')
+    with open('requirements.txt', 'w') as file_handle:
+        for line in subprocess.check_output(['pip', 'freeze']).split('\n'):
+            if line.split('==')[0] in major_packages:
+                file_handle.write(line + '\n')
+
+if __name__ == '__main__':
+    main()
