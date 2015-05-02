@@ -54,6 +54,9 @@
                 {% if not ticket.paid %}
                     <li><a href="{{ url_for('admin.markTicketPaid', id=ticket.id) }}" class="button tiny">Mark as Paid</a></li>
                 {% endif %}
+                {% if ticket.collected %}
+                    <li><a href="{{ url_for('admin.uncollect_ticket', id=ticket.id) }}" class="button tiny">Mark as Uncollected</a><span class="small">N.B. If the ticket owner has already been given a wristband they will not be able to use it to enter the ball.</span></li>
+                {% endif %}
             </ul>
             <h4>Ticket's Card Transactions</h4>
             {% if ticket.transactions.count() > 0 %}

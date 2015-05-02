@@ -812,6 +812,33 @@ def cancelTicket(id):
         )
         return redirect(request.referrer or url_for('admin.adminHome'))
 
+@admin.route('/admin/ticket/<int:id>/uncollect')
+@admin_required
+def uncollect_ticket(id):
+    ticket = Ticket.get_by_id(id)
+
+    if ticket:
+        ticket.collected = False
+        ticket.barcode = None
+        db.session.commit()
+
+        log_event(
+            'Marked ticket as uncollected',
+            [ticket]
+        )
+
+        flash(
+            u'Ticket marked as uncollected.',
+            'success'
+        )
+        return redirect(request.referrer or url_for('admin.viewTicket', id=ticket.id))
+    else:
+        flash(
+            u'Could not find ticket, could not mark as uncollected.',
+            'warning'
+        )
+        return redirect(request.referrer or url_for('admin.adminHome'))
+
 @admin.route('/admin/ticket/validate', methods=['POST', 'GET'])
 @admin_required
 def validateTicket():
