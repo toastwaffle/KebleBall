@@ -652,6 +652,13 @@ def collectTicket(id):
     if request.method != 'POST':
         return redirect(request.referrer or url_for('admin.adminHome'))
 
+    if request.form['barcode'] is None or request.form['barcode'] == '':
+        flash(
+            u'Barcode cannot be empty.',
+            'warning'
+        )
+        return redirect(request.referrer or url_for('admin.adminHome'))
+
     existing = Ticket.query.filter(Ticket.barcode==request.form['barcode']).count()
 
     if existing > 0:
