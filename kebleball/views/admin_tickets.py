@@ -53,6 +53,14 @@ def collect_ticket(ticket_id):
         return flask.redirect(flask.request.referrer or
                               flask.url_for('admin.admin_home'))
 
+    if not flask.request.form['barcode']:
+        flask.flash(
+            u'Barcode cannot be empty.',
+            'warning'
+        )
+        return flask.redirect(flask.request.referrer or
+                              flask.url_for('admin.admin_home'))
+
     existing = models.Ticket.query.filter(
         models.Ticket.barcode == flask.request.form['barcode']
     ).count()
