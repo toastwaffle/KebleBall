@@ -798,7 +798,7 @@ strong, b { font-weight: bold; line-height: inherit; }
 small { font-size: 80%; line-height: inherit; }
 
 /* line 288, scss/vendor/typography/_base.scss */
-h1, h2, h3, h4, h5, h6 { font-family: "Open Sans", Helvetica, sans-serif; font-weight: normal; font-style: normal; color: inherit; text-rendering: optimizeLegibility; text-transform: uppercase; margin-top: 0; margin-bottom: 0.5rem; line-height: 1.4; }
+h1, h2, h3, h4, h5, h6 { font-family: "Open Sans", Helvetica, sans-serif; font-weight: bold; font-style: normal; color: inherit; text-rendering: optimizeLegibility; text-transform: uppercase; margin-top: 0; margin-bottom: 0.5rem; line-height: 1.4; }
 /* line 304, scss/vendor/typography/_base.scss */
 h1 small, h2 small, h3 small, h4 small, h5 small, h6 small { color: #cacaca; line-height: 0; }
 
