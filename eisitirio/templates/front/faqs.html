@@ -5,13 +5,12 @@
 
 {% block content %}
     <section id="terms" class="columns">
-        <p>Last Updated 19th November 2017</p>
+        <p>Last Updated 17th January 2019</p>
 
         <h4>Account Registration</h4>
 
         <ul>
-            <li><strong>General Release opens at 10am Saturday 28th January.</strong></li>
-            <li>Each account holder is eligible to purchase up to four tickets each<./li>
+            <li><strong>General Release opens at noon Saturday 26th January.</strong></li>
         </ul>
 
         <h4>Ticket payment</h4>
@@ -20,7 +19,7 @@
             <li>
                 <strong>Tickets must be paid for within 24 hours.</strong>
                 <ul>
-                    <li>If tickets are not paid for, they will expire and be allocated to the next person on the waiting list.</li>
+                    <li>If tickets are not paid for within 24 hours, they will expire and be allocated to the next person on the waiting list.</li>
                     <li>If your tickets expire due to non-payment, we will be unable to re-allocate tickets to you.</li>
                 </ul>
             </li>
@@ -30,8 +29,6 @@
                     <li>We do not support payment by American Express (Amex) cards.</li>
                 </ul>
             </li>
-            <li>
-                <ul>
                     <li>If your ticket is not marked as paid, please contact <a href="{{ template_config['TICKETS_EMAIL_LINK'] }}">the ticketing officer</a> as soon as possible with proof of purchase.</li>
                 </ul>
             </li>
@@ -49,14 +46,13 @@
             <li>
                 The leader of a group (the person who created the group) will be a given a code that can be used by others to join the group.
                 <ul>
-                    <li>A group may have at most 4 members, including the group leader.</li>
-                    <li>This means that any one group can request at most 16 tickets.</li>
+                    <li>A group may have at most {{ template_config['MAX_GROUP_MEMBERS']}} members, including the group leader.</li>
                 </ul>
             </li>
-            <li>The group leader is responsible for returning to the ticketing system when general release begins and attempting to reserve tickets for the group.</li>
+            <li>The group leader is responsible for returning to the ticketing system shortly before general release begins and attempting to reserve tickets for the group.</li>
             <li>If successful, the tickets for the group will be assigned to each member of the group as requested.</li>
-            <li>It is the responsibility of each member of the group to pay for the tickets that they have requested.</li>
-            <li>If one member of a group does not pay for their tickets in the 24 hour period, only their tickets will expire, the rest of the group’s tickets (providing they are paid for) will still be valid.</li>
+            <li>It is the responsibility of each member of the group to pay for their ticket.</li>
+            <li>If one member of a group does not pay for their ticket in the {{ format_timedelta(template_config['TICKET_EXPIRY_TIME']) }} period, only their ticket will expire, the rest of the group’s tickets (providing they are paid for) will still be valid.</li>
         </ul>
 
         <h4>Waiting List</h4>
@@ -83,15 +79,16 @@
         <h4>Guests</h4>
 
         <ul>
-            <li>Non-Oxford University students and non-students are permitted to attend the Ball provided that they are over the age of 18 years.</li>
+            <li>All guests are permitted to attend the Ball provided that they are over the age of 18 years old.</li>
             <li>Each guest who has had a ticket purchased on their behalf will have to register their own account on the Keble Ball website in the following weeks.</li>
         </ul>
 
         <h4>Tickets & Account Photo</h4>
 
         <ul>
+	    <li> Once you have purchased your ticket, you are entirely responsible for it. You may not share the QR Code related to your ticket.</li>
             <li>
-                Once you collect your ticket, you are entirely responsible for it.
+                Once you are handed your wristband, you are entirely responsible for it.
                 <ul>
                     <li>Keble Ball will not be able to replace or refund any lost, stolen or damaged wristbands.</li>
                 </ul>
@@ -100,8 +97,8 @@
                 Your account must have an identifiable photo of yourself.
                 <ul>
                     <li>If your photo is not currently an identifiable headshot it must be changed. This can be done <a href="{{ url_for('dashboard.profile') }}">here</a>.</li>
-                    <li>An identifiable headshot must be uploaded by 28th February 2017.</li>
-                    <li>Any changes to your photo after 28th February 2017 will be subject to an administration charge.</li>
+                    <li>An identifiable headshot must be uploaded before you buy your ticket.</li>
+                    <li>Any changes to your photo after that will be subject to an administration charge.</li>
                 </ul>
             </li>
             <li>Keble Ball reserves the right to refuse you entrance at the gate if your account photo is not easily identifiable as you.</li>

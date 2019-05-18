@@ -66,7 +66,10 @@ def update_affiliation(user, new_college, new_affiliation):
                 old_affiliation != new_affiliation or
                 old_college != new_college
             ) and
-            new_college.name in APP.config['HOST_COLLEGES'] and
+            (	
+		new_college.name in APP.config['HOST_COLLEGES'] or
+		new_affiliation.name == 'Contest Winner'
+	    ) and
             new_affiliation.name not in [
                 'Other',
                 'None',
@@ -87,14 +90,18 @@ def maybe_verify_affiliation(user):
             not APP.config['TICKETS_ON_SALE']
     ):
         if (
-                user.college.name not in APP.config['HOST_COLLEGES'] or
-                user.affiliation.name in [
-                    'Other',
-                    'None',
-                    'Graduate/Alumnus'
-                ] or
-                (
-                    user.battels is not None
+		user.affiliation.name != 'Contest Winner' and
+	       	(
+                    user.college.name not in APP.config['HOST_COLLEGES'] or
+                    user.affiliation.name in [
+                        'Other',
+                    	'None',
+                    	'Graduate/Alumnus'
+                    ] or
+		    (
+                    	user.battels is not None and
+			user.affiliation.name == 'Student'
+		    )
                 )
         ):
             user.affiliation_verified = True
@@ -122,9 +129,14 @@ def maybe_verify_affiliation(user):
 def get_unverified_users():
     """Get all the users who should be verified but aren't."""
     return models.User.query.filter(
-        sqlalchemy.or_(
-            models.User.college.has(name=college)
-            for college in APP.config['HOST_COLLEGES']
+        (
+	    sqlalchemy.or_(
+            	models.User.college.has(name=college)
+            	for college in APP.config['HOST_COLLEGES']
+	    )
+	) |
+	( 
+            models.User.affiliation_id == '8'
         )
     ).filter(
         models.User.affiliation_verified == None # pylint: disable=singleton-comparison

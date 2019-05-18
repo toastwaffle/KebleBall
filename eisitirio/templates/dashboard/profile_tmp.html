@@ -59,7 +59,6 @@
             </fieldset>
         </form>
         <form action="{{ url_for('dashboard.update_dietary_requirements') }}" method="post">
-        <!--
             <fieldset>
                 <legend>Dietary Requirements</legend>
                 <div class="row">
@@ -120,7 +119,6 @@
                 </div>
                 <input type="submit" value="Update your dietary requirements" class="button small" />
             </fieldset>
-        -->
         </form>
         {% if template_config['REQUIRE_USER_PHOTO'] %}
             <form action="{{ url_for('dashboard.update_photo') }}" enctype="multipart/form-data" method="post">

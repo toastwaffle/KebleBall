@@ -187,14 +187,14 @@ class Announcement(DB.Model):
 
         for recipient in recipient_query.all():
             if (
-                    ( # pylint: disable=too-many-boolean-expressions
+                    (( # pylint: disable=too-many-boolean-expressions
                         self.has_tickets is None or
                         recipient.has_tickets() == self.has_tickets
-                    ) and
+                    ) or
                     (
                         self.holds_ticket is None or
                         recipient.has_held_ticket() == self.holds_ticket
-                    ) and
+                    )) and
                     (
                         self.is_waiting is None or
                         recipient.is_waiting == self.is_waiting

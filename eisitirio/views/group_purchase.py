@@ -135,11 +135,13 @@ def leave():
     else:
         group = login.current_user.purchase_group
 
-        group.members.remove(login.current_user)
+        # group.members.remove(login.current_user)
 
         if not group.purchased:
             for request in login.current_user.group_purchase_requests:
                 DB.session.delete(request)
+        
+        group.members.remove(login.current_user)
 
         APP.log_manager.log_event(
             'Left Purchase Group',

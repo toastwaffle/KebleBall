@@ -237,7 +237,7 @@ def validate_ticket():
 
     if flask.request.method == 'POST':
         ticket = models.Ticket.query.filter(
-            models.Ticket.barcode == flask.request.form['barcode']).first()
+            models.Ticket.barcode == flask.request.form['barcode'].split(',')[1]).first()
 
         if not ticket:
             valid = False
@@ -308,6 +308,54 @@ def check_ticket(ticket_id, barcode):
         valid = True
         message = 'Permit entry for {0}'.format(ticket.holder.full_name.encode('utf-8'))
         photo = ticket.holder.photo.thumb_url
+
+    return flask.jsonify(ticketvalid=valid, message=message, photourl=photo)
+
+@ADMIN_TICKETS.route('/mobile-app/ticket/validate-ticket/<string:key>/<int:ticket_id>/<string:barcode>', methods=['POST', 'GET'])
+def check_ticket_mobileapp(key, ticket_id, barcode):
+    valid = None
+    message = None
+    photo = None
+    
+    if key != APP.config['MOBILE_APP_KEY']:
+        valid = False
+        message = "You don't have permissions (wrong mobile app private key). Contact the IT Officer!!!"
+    else:
+        ticket = models.Ticket.get_by_id(ticket_id)
+
+        if not ticket:
+            valid = False
+            message = "No such ticket with barcode: {0}".format(barcode)
+        elif not ticket.barcode or (ticket.barcode and ticket.barcode != barcode):
+            valid = False
+            message = "Found ticket, but the barcode doesn't match: {0}".format(barcode)
+        elif not ticket.holder:
+            valid = False
+            message = (
+                "Ticket has not been claimed. Owner is:\n    {0}"
+                ).format(ticket.owner.full_name.encode('utf-8'))
+            photo = ticket.owner.photo.full_url
+        elif ticket.entered:
+            valid = False
+            message = (
+                "Ticket has already been used for entry. Check ID against:\n    {0}\n\nOwned by:\n    {1}"
+            ).format(
+                ticket.holder.full_name.encode('utf-8'),
+                ticket.owner.full_name.encode('utf-8')
+            )
+            photo = ticket.holder.photo.full_url
+        else:
+            ticket.entered = True
+            DB.session.commit()
+
+            APP.log_manager.log_event(
+                'Marked ticket as entered from Scanning App',
+                tickets=[ticket]
+            )
+
+            valid = True
+            message = "Permit entry for:\n    {0}".format(ticket.holder.full_name.encode('utf-8'))
+            photo = ticket.holder.photo.full_url
 
     return flask.jsonify(ticketvalid=valid, message=message, photourl=photo)
 

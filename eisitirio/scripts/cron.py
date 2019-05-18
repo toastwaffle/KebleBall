@@ -21,7 +21,7 @@ from eisitirio.helpers import email_manager
 from eisitirio.helpers import statistic_plots
 from eisitirio.helpers import statistics
 from eisitirio.logic import purchase_logic
-
+from eisitirio.scripts import create_qr_codes
 APP = app.APP
 DB = db.DB
 
@@ -184,11 +184,15 @@ def generate_statistics():
 
 def draw_graphs():
     """Generate graphs for all statistics groups."""
-    if not os.path.exists(APP.config['GRAPH_STORAGE_FOLDER']):
-        os.makedirs(APP.config['GRAPH_STORAGE_FOLDER'])
+    #if not os.path.exists(APP.config['GRAPH_STORAGE_FOLDER']):
+        #os.makedirs(APP.config['GRAPH_STORAGE_FOLDER'])
 
-    for group in static.STATISTIC_GROUPS:
-        statistic_plots.create_plot(group)
+    #for group in static.STATISTIC_GROUPS:
+        #statistic_plots.create_plot(group)
+
+# def autom_claim_tickets():
+    # for user in models.User.query.all():
+        
 
 def run_5_minutely(now):
     """Run tasks which need to be run every 5 minutes.
@@ -207,10 +211,11 @@ def run_5_minutely(now):
 
     send_announcements()
 
-    # Don't repopulate the waiting list
-    # allocate_waiting()
+    allocate_waiting()
 
     cancel_expired_tickets(now)
+
+    create_qr_codes.CreateQRCodes.run()
 
     remove_expired_secret_keys(now)
 
@@ -235,7 +240,7 @@ def run_20_minutely(now):
 
     generate_statistics()
 
-    draw_graphs()
+    #draw_graphs()
 
 class CronCommand(script.Command):
     """Flask Script command for running Cron jobs."""

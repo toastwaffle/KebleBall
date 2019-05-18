@@ -32,4 +32,5 @@ def get_static():
         Affiliation('Foreign Exchange Student'),
         Affiliation('Other'),
         Affiliation('None'),
+        Affiliation('Contest Winner'),
     ]

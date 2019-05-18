@@ -6,7 +6,7 @@
 @include foundation-everything;
 
 nav, #page-title, #main, footer, #flashes, #verify_sms {
-    background-color: #000;
+    background-color: #afcdd3;
 }
 
 a {
@@ -38,11 +38,11 @@ a {
   }
 
   .headline {
-    color: #ffe;
+    color: #061900;
   }
 
   a {
-    color: #ffe;
+    color: #000000;
   }
 }
 
@@ -61,7 +61,7 @@ a {
     a {
       padding: $subnav-link-padding 1rem;
       font-size: $subnav-font-size;
-      color: #ffe;
+      color: #061900;
       text-transform: uppercase;
       display: block;
       font-weight: bold;
@@ -125,8 +125,8 @@ a {
         border: 3px solid darken(map-get($foundation-palette, success), 20);
     }
     &.info {
-        background-color: #b3dfef;
-        border: 3px solid #1313f3;
+        background-color: #3ba061;
+        border: 3px solid darken(#3ba061, 20);
     }
     p:last-child {
         margin-bottom: 0;

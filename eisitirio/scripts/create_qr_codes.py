@@ -13,6 +13,9 @@ from eisitirio.database import models
 from eisitirio.logic.custom_logic import ticket_logic
 from eisitirio.helpers import util
 from time import sleep
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 APP = app.APP
 DB = db.DB
@@ -26,7 +29,7 @@ class CreateQRCodes(script.Command):
     @staticmethod
     def run():
         with app.APP.app_context():
-            send_claim_codes(send_only_new=False)
+            send_claim_codes(send_only_new=True)
 
 def generate_barcodes(send_only_new):
     """Given a ticket, generate a 20 character long unique ID for each ticket.
@@ -43,11 +46,11 @@ def generate_barcodes(send_only_new):
             models.Ticket.barcode == None,
             # Ticket has a holder
             models.Ticket.holder_id != None,
-            # The ticket is paid for.
+	    # The ticket is paid for.
             models.Ticket.paid,
             # The ticket has not been cancelled.
             models.Ticket.cancelled == False
-        ).all()
+        ).limit(50).all()
     else:
         tickets = models.Ticket.query.filter(
             # Ticket has a holder
@@ -56,7 +59,7 @@ def generate_barcodes(send_only_new):
             models.Ticket.paid,
             # The ticket has not been cancelled.
             models.Ticket.cancelled == False
-        ).all()
+        ).limit(50).all()
 
     for ticket in tickets:
         if not ticket.barcode: # Need to generate a bar code
@@ -126,7 +129,7 @@ def send_chunk(tickets):
                 failures = failures + 1
         except:
             # We've failed to send this one out, so mark it for review
-            ticket.barcode = None
+            #ticket.barcode = None
             DB.session.commit()
             failures = failures + 1
             LOG.error("[EXCEPTION] Possibly failed to send ticket to: {0}".format(ticket.holder.full_name.encode('utf-8')))
