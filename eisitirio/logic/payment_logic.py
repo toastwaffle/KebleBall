@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 
 import flask_login as login
+
 # from flask.ext import login
 import flask
 
@@ -12,8 +13,8 @@ from eisitirio.database import db
 from eisitirio.database import models
 from eisitirio.logic import realex_logic
 
-def get_transaction(payment_method, tickets=None, postage_option=None,
-                    admin_fee=None):
+
+def get_transaction(payment_method, tickets=None, postage_option=None, admin_fee=None):
     """Get a new transaction object for the given items."""
     is_free = True
 
@@ -28,48 +29,49 @@ def get_transaction(payment_method, tickets=None, postage_option=None,
 
     if is_free:
         return models.FreeTransaction(login.current_user)
-    elif payment_method == 'Battels':
+    elif payment_method == "Battels":
         return models.BattelsTransaction(login.current_user)
-    elif payment_method == 'Card':
+    elif payment_method == "Card":
         return models.CardTransaction(login.current_user)
+
 
 def create_postage(transaction, tickets, postage_option, address):
     """Create a postage object and corresponding transaction item."""
-    if postage_option and postage_option is not app.APP.config['NO_POSTAGE_OPTION']:
-        postage = models.Postage(
-            login.current_user,
-            postage_option,
-            tickets,
-            address
-        )
+    if postage_option and postage_option is not app.APP.config["NO_POSTAGE_OPTION"]:
+        postage = models.Postage(login.current_user, postage_option, tickets, address)
 
         db.DB.session.add(postage)
 
         db.DB.session.add(models.PostageTransactionItem(transaction, postage))
 
+
 def complete_payment(transaction, payment_term):
     """Do the payment, or redirect the user to eWay."""
-    if transaction.payment_method == 'Free':
+    if transaction.payment_method == "Free":
         transaction.mark_as_paid()
 
         app.APP.log_manager.log_event(
-            'Performed Free Transaction',
+            "Performed Free Transaction",
             user=login.current_user,
-            transaction=transaction
+            transaction=transaction,
         )
-    elif transaction.payment_method == 'Battels':
+    elif transaction.payment_method == "Battels":
         transaction.charge(payment_term)
 
         db.DB.session.commit()
 
-        flask.flash('Battels payment completed.', 'success')
-    elif transaction.payment_method == 'Card':
-            return flask.redirect(flask.url_for('purchase.payment_interstitial', transaction_id=transaction.object_id))
+        flask.flash("Battels payment completed.", "success")
+    elif transaction.payment_method == "Card":
+        return flask.redirect(
+            flask.url_for(
+                "purchase.payment_interstitial", transaction_id=transaction.object_id
+            )
+        )
 
-    return flask.redirect(flask.url_for('dashboard.dashboard_home'))
+    return flask.redirect(flask.url_for("dashboard.dashboard_home"))
 
-def do_payment(tickets, postage_option, payment_method, payment_term,
-               address=None):
+
+def do_payment(tickets, postage_option, payment_method, payment_term, address=None):
     """Run the payment process for tickets and postage.
 
     Args:
@@ -89,8 +91,7 @@ def do_payment(tickets, postage_option, payment_method, payment_term,
     db.DB.session.add(transaction)
 
     db.DB.session.add_all(
-        models.TicketTransactionItem(transaction, ticket)
-        for ticket in tickets
+        models.TicketTransactionItem(transaction, ticket) for ticket in tickets
     )
 
     create_postage(transaction, tickets, postage_option, address)
@@ -99,8 +100,8 @@ def do_payment(tickets, postage_option, payment_method, payment_term,
 
     return complete_payment(transaction, payment_term)
 
-def buy_postage(tickets, postage_option, payment_method, payment_term,
-                address=None):
+
+def buy_postage(tickets, postage_option, payment_method, payment_term, address=None):
     """Run the payment process for postage only.
 
     Args:
@@ -124,6 +125,7 @@ def buy_postage(tickets, postage_option, payment_method, payment_term,
     db.DB.session.commit()
 
     return complete_payment(transaction, payment_term)
+
 
 def pay_admin_fee(admin_fee, payment_method, payment_term):
     """Run the payment process for an admin fee."""

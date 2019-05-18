@@ -12,23 +12,22 @@ from eisitirio.forms import common
 
 APP = app.APP
 
+
 class AdminFeeForm(flask_wtf.Form):
     """Form for charging the user an admin fee."""
 
     reason = wtforms.TextAreaField(
-        label='Reason for Admin Fee',
+        label="Reason for Admin Fee",
         validators=[
             validators.DataRequired(
-                message='A reason must be given for charging the admin fee.'
+                message="A reason must be given for charging the admin fee."
             )
-        ]
+        ],
     )
 
     amount = wtforms.FormField(
         common.make_pounds_pence_subform_class(
-            validate_range=True,
-            message='The fee amount must be greater than 0.',
-            min=1
+            validate_range=True, message="The fee amount must be greater than 0.", min=1
         ),
-        label='Fee Amount'
+        label="Fee Amount",
     )

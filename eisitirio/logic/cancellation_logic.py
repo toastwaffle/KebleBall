@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import collections
 
 import flask_login as login
+
 # from flask.ext import login
 import flask
 
@@ -16,6 +17,7 @@ from eisitirio.database import models
 APP = app.APP
 DB = db.DB
 
+
 def cancel_tickets(tickets, quiet=False):
     """Cancel a set of tickets.
 
@@ -23,9 +25,11 @@ def cancel_tickets(tickets, quiet=False):
     transaction for each transaction used for payment.
     """
     if quiet:
+
         def flash(_, unused):
             """No-op flash function for admin cancellations."""
             pass
+
     else:
         flash = flask.flash
 
@@ -36,35 +40,27 @@ def cancel_tickets(tickets, quiet=False):
     for ticket in tickets:
         if not ticket.can_be_cancelled():
             continue
-        if not ticket.paid or ticket.payment_method == 'Free':
+        if not ticket.paid or ticket.payment_method == "Free":
             ticket.cancelled = True
             cancelled.append(ticket)
         # no longer allow refunds for card transactions
-        elif ticket.payment_method in ['Battels']:
+        elif ticket.payment_method in ["Battels"]:
             transactions[ticket.transaction].append(ticket)
 
     DB.session.commit()
 
     for transaction, tickets in transactions.iteritems():
-        refund_transaction = models.BattelsTransaction(
-            transaction.user
-        )
+        refund_transaction = models.BattelsTransaction(transaction.user)
 
         DB.session.add(refund_transaction)
 
         for ticket in tickets:
             DB.session.add(
-                models.TicketTransactionItem(
-                    refund_transaction,
-                    ticket,
-                    is_refund=True
-                )
+                models.TicketTransactionItem(refund_transaction, ticket, is_refund=True)
             )
 
         number_uncancelled = sum(
-            1
-            for ticket in transaction.tickets
-            if not ticket.cancelled
+            1 for ticket in transaction.tickets if not ticket.cancelled
         )
 
         # Refund the postage if we're cancelling all the tickets in the
@@ -72,9 +68,7 @@ def cancel_tickets(tickets, quiet=False):
         if len(tickets) == number_uncancelled and transaction.postage:
             DB.session.add(
                 models.PostageTransactionItem(
-                    refund_transaction,
-                    transaction.postage,
-                    is_refund=True
+                    refund_transaction, transaction.postage, is_refund=True
                 )
             )
 
@@ -82,14 +76,11 @@ def cancel_tickets(tickets, quiet=False):
 
         success = False
 
-        if (
-            transaction.battels_term == 'MTHT' and
-            app.APP.config['CURRENT_TERM']
-        ):
-            refund_transaction.charge('MTHT')
+        if transaction.battels_term == "MTHT" and app.APP.config["CURRENT_TERM"]:
+            refund_transaction.charge("MTHT")
             success = True
         else:
-            refund_transaction.charge(app.APP.config['CURRENT_TERM'])
+            refund_transaction.charge(app.APP.config["CURRENT_TERM"])
             success = True
 
         if success:
@@ -105,41 +96,32 @@ def cancel_tickets(tickets, quiet=False):
 
     if cancelled:
         APP.log_manager.log_event(
-            'Cancelled tickets',
-            tickets=cancelled,
-            user=login.current_user
+            "Cancelled tickets", tickets=cancelled, user=login.current_user
         )
 
         if len(cancelled) == len(tickets):
-            flash(
-                'All of the tickets you selected have been cancelled.',
-                'success'
-            )
+            flash("All of the tickets you selected have been cancelled.", "success")
         else:
             flash(
                 (
-                    'Some of your tickets could not be automatically '
-                    'refunded, and so were not cancelled. This might be due to '
-                    'them having been payed for by card. If they have not been purchased by card you can try again '
-                    'later, but if this problem continues to occur, you '
+                    "Some of your tickets could not be automatically "
+                    "refunded, and so were not cancelled. This might be due to "
+                    "them having been payed for by card. If they have not been purchased by card you can try again "
+                    "later, but if this problem continues to occur, you "
                     'should contact <a href="{0}">the ticketing officer</a>'
-                ).format(
-                    APP.config['TICKETS_EMAIL_LINK']
-                ),
-                'warning'
+                ).format(APP.config["TICKETS_EMAIL_LINK"]),
+                "warning",
             )
     else:
         flash(
             (
-                'None of your tickets could be automatically refunded, and so '
-                'none were cancelled.  This might be due to '
-                'them having been payed for by card. If they have not been purchased by card you can try again '
-                'later, but if this problem continues to occur, you '
+                "None of your tickets could be automatically refunded, and so "
+                "none were cancelled.  This might be due to "
+                "them having been payed for by card. If they have not been purchased by card you can try again "
+                "later, but if this problem continues to occur, you "
                 'should contact <a href="{0}">the ticketing officer</a>'
-            ).format(
-                APP.config['TICKETS_EMAIL_LINK']
-            ),
-            'warning'
+            ).format(APP.config["TICKETS_EMAIL_LINK"]),
+            "warning",
         )
 
     return cancelled

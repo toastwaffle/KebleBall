@@ -15,7 +15,7 @@ _TicketType = collections.namedtuple(
         "total_limit",
         "counts_towards_guest_limit",
         "can_buy",
-    ]
+    ],
 )
 
 
@@ -40,8 +40,8 @@ class TicketType(_TicketType):
     @property
     def price_pounds(self):
         """Return the price in pounds.pence format."""
-        price = '{0:03d}'.format(self.price)
-        return price[:-2] + '.' + price[-2:]
+        price = "{0:03d}".format(self.price)
+        return price[:-2] + "." + price[-2:]
 
     def to_json_dict(self, purchase_limit):
         """Create a dictionary of this object that can be serialised to JSON.
@@ -53,9 +53,9 @@ class TicketType(_TicketType):
             purchase_limit: (int) how many tickets of this type can be bought.
         """
         return {
-            'name': self.name,
-            'slug': self.slug,
-            'price': self.price,
-            'counts_towards_guest_limit': self.counts_towards_guest_limit,
-            'purchase_limit': purchase_limit
+            "name": self.name,
+            "slug": self.slug,
+            "price": self.price,
+            "counts_towards_guest_limit": self.counts_towards_guest_limit,
+            "purchase_limit": purchase_limit,
         }

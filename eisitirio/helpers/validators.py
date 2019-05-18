@@ -7,6 +7,7 @@ import datetime
 
 from eisitirio.database import models
 
+
 def validate_voucher(code):
     """Validate a discount voucher.
 
@@ -26,65 +27,55 @@ def validate_voucher(code):
         result = (
             False,
             {
-                'class': 'error',
-                'message': ('That voucher code wasn\'t recognised. '
-                            'Please ensure you have entered it correctly.')
+                "class": "error",
+                "message": (
+                    "That voucher code wasn't recognised. "
+                    "Please ensure you have entered it correctly."
+                ),
             },
-            None
+            None,
         )
     else:
         if voucher.single_use and voucher.used:
             result = (
                 False,
                 {
-                    'class': 'error',
-                    'message': 'That voucher code has already been used.'
+                    "class": "error",
+                    "message": "That voucher code has already been used.",
                 },
-                None
+                None,
             )
-        elif (voucher.expires is not None
-              and voucher.expires < datetime.datetime.utcnow()):
+        elif (
+            voucher.expires is not None and voucher.expires < datetime.datetime.utcnow()
+        ):
             result = (
                 False,
-                {
-                    'class': 'error',
-                    'message': 'That voucher code has expired.'
-                },
-                None
+                {"class": "error", "message": "That voucher code has expired."},
+                None,
             )
         else:
-            if voucher.discount_type == 'Fixed Price':
+            if voucher.discount_type == "Fixed Price":
                 message = (
-                    'This voucher gives a fixed price of &pound;{0:.2f} for '
-                ).format(
-                    (voucher.discount_value / 100.0)
-                )
-            elif voucher.discount_type == 'Fixed Discount':
+                    "This voucher gives a fixed price of &pound;{0:.2f} for "
+                ).format((voucher.discount_value / 100.0))
+            elif voucher.discount_type == "Fixed Discount":
                 message = (
-                    'This voucher gives a fixed &pound;{0:.2f} discount off '
-                ).format(
-                    (voucher.discount_value / 100.0)
-                )
+                    "This voucher gives a fixed &pound;{0:.2f} discount off "
+                ).format((voucher.discount_value / 100.0))
             else:
-                message = 'This voucher gives a {0:d}% discount off '.format(
+                message = "This voucher gives a {0:d}% discount off ".format(
                     voucher.discount_value
                 )
 
-            if voucher.applies_to == 'Ticket':
-                message = message + 'one ticket.'
+            if voucher.applies_to == "Ticket":
+                message = message + "one ticket."
             else:
-                message = message + 'all tickets purchased in one transaction.'
+                message = message + "all tickets purchased in one transaction."
 
-            result = (
-                True,
-                {
-                    'class': 'success',
-                    'message': message
-                },
-                voucher
-            )
+            result = (True, {"class": "success", "message": message}, voucher)
 
     return result
+
 
 def validate_resale_email(email, current_user):
     """Validate a user to resell tickets to.
@@ -109,38 +100,38 @@ def validate_resale_email(email, current_user):
             result = (
                 False,
                 {
-                    'class': 'info',
-                    'message': (
-                        'There is very little point, if any, in reselling '
-                        'tickets to yourself...'
-                    )
+                    "class": "info",
+                    "message": (
+                        "There is very little point, if any, in reselling "
+                        "tickets to yourself..."
+                    ),
                 },
-                None
+                None,
             )
         else:
             result = (
                 True,
                 {
-                    'class': 'success',
-                    'message': (
-                        '{0} will receive an email to confirm the resale.'
-                    ).format(user.forenames)
+                    "class": "success",
+                    "message": (
+                        "{0} will receive an email to confirm the resale."
+                    ).format(user.forenames),
                 },
-                None
+                None,
             )
     else:
         result = (
             False,
             {
-                'class': 'warning',
-                'message': (
-                    'No user with that email address was found, have you '
-                    'entered it correctly? The person who you are reselling '
-                    'to must have an account before they can buy tickets from '
-                    'you.'
-                )
+                "class": "warning",
+                "message": (
+                    "No user with that email address was found, have you "
+                    "entered it correctly? The person who you are reselling "
+                    "to must have an account before they can buy tickets from "
+                    "you."
+                ),
             },
-            None
+            None,
         )
 
     return result

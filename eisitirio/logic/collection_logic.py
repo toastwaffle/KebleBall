@@ -24,22 +24,17 @@ def collect_ticket(ticket, barcode):
         (str or None) an error message if the collection failed, else None.
     """
     if ticket.collected:
-        return 'Ticket has already been collected.'
+        return "Ticket has already been collected."
 
     if not barcode:
-        return 'Barcode must not be empty.'
+        return "Barcode must not be empty."
 
-    if models.Ticket.query.filter(
-            models.Ticket.barcode == barcode
-    ).count():
-        return 'Barcode has already been used for a ticket.'
+    if models.Ticket.query.filter(models.Ticket.barcode == barcode).count():
+        return "Barcode has already been used for a ticket."
 
     ticket.barcode = barcode
     DB.session.commit()
 
-    APP.log_manager.log_event(
-        'Collected',
-        tickets=[ticket]
-    )
+    APP.log_manager.log_event("Collected", tickets=[ticket])
 
     return None

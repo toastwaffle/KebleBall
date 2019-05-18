@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 
 import flask_login as login
+
 # from flask.ext import login
 import flask
 
@@ -18,18 +19,15 @@ from eisitirio.logic import affiliation_logic
 APP = app.APP
 DB = db.DB
 
-ADMIN_USERS = flask.Blueprint('admin_users', __name__)
+ADMIN_USERS = flask.Blueprint("admin_users", __name__)
 
-@ADMIN_USERS.route('/admin/user/<int:user_id>/view')
+
+@ADMIN_USERS.route("/admin/user/<int:user_id>/view")
 @ADMIN_USERS.route(
-    '/admin/user/<int:user_id>/view/page/selfactions/<int:self_actions_page>'
+    "/admin/user/<int:user_id>/view/page/selfactions/<int:self_actions_page>"
 )
-@ADMIN_USERS.route(
-    '/admin/user/<int:user_id>/view/page/actions/<int:actions_page>'
-)
-@ADMIN_USERS.route(
-    '/admin/user/<int:user_id>/view/page/events/<int:events_page>'
-)
+@ADMIN_USERS.route("/admin/user/<int:user_id>/view/page/actions/<int:actions_page>")
+@ADMIN_USERS.route("/admin/user/<int:user_id>/view/page/events/<int:events_page>")
 @login.login_required
 @login_manager.admin_required
 def view_user(user_id, self_actions_page=1, actions_page=1, events_page=1):
@@ -37,34 +35,22 @@ def view_user(user_id, self_actions_page=1, actions_page=1, events_page=1):
     user = models.User.get_by_id(user_id)
 
     if user:
-        self_actions = user.actions.filter(
-            models.Log.actor_id == models.Log.user_id
-        ).order_by(
-            models.Log.timestamp.desc()
-        ).paginate(
-            self_actions_page,
-            10,
-            True
+        self_actions = (
+            user.actions.filter(models.Log.actor_id == models.Log.user_id)
+            .order_by(models.Log.timestamp.desc())
+            .paginate(self_actions_page, 10, True)
         )
 
-        other_actions = user.actions.filter(
-            models.Log.actor_id != models.Log.user_id
-        ).order_by(
-            models.Log.timestamp.desc()
-        ).paginate(
-            actions_page,
-            10,
-            True
+        other_actions = (
+            user.actions.filter(models.Log.actor_id != models.Log.user_id)
+            .order_by(models.Log.timestamp.desc())
+            .paginate(actions_page, 10, True)
         )
 
-        events = user.events.filter(
-            models.Log.actor_id != models.Log.user_id
-        ).order_by(
-            models.Log.timestamp.desc()
-        ).paginate(
-            events_page,
-            10,
-            True
+        events = (
+            user.events.filter(models.Log.actor_id != models.Log.user_id)
+            .order_by(models.Log.timestamp.desc())
+            .paginate(events_page, 10, True)
         )
     else:
         self_actions = None
@@ -72,17 +58,18 @@ def view_user(user_id, self_actions_page=1, actions_page=1, events_page=1):
         events = None
 
     return flask.render_template(
-        'admin_users/view_user.html',
+        "admin_users/view_user.html",
         user=user,
         self_actions=self_actions,
         other_actions=other_actions,
         events=events,
         self_actions_page=self_actions_page,
         actions_page=actions_page,
-        events_page=events_page
+        events_page=events_page,
     )
 
-@ADMIN_USERS.route('/admin/user/<int:user_id>/impersonate')
+
+@ADMIN_USERS.route("/admin/user/<int:user_id>/impersonate")
 @login.login_required
 @login_manager.admin_required
 def impersonate_user(user_id):
@@ -96,28 +83,21 @@ def impersonate_user(user_id):
     user = models.User.get_by_id(user_id)
 
     if user:
-        flask.session['actor_id'] = login.current_user.object_id
+        flask.session["actor_id"] = login.current_user.object_id
 
-        login.login_user(
-            user,
-            remember=False
-        )
+        login.login_user(user, remember=False)
 
-        APP.log_manager.log_event(
-            'Started impersonating user',
-            user=user
-        )
+        APP.log_manager.log_event("Started impersonating user", user=user)
 
-        return flask.redirect(flask.url_for('dashboard.dashboard_home'))
+        return flask.redirect(flask.url_for("dashboard.dashboard_home"))
     else:
-        flask.flash(
-            'Could not find user, could not impersonate.',
-            'warning'
+        flask.flash("Could not find user, could not impersonate.", "warning")
+        return flask.redirect(
+            flask.request.referrer or flask.url_for("admin.admin_home")
         )
-        return flask.redirect(flask.request.referrer or
-                              flask.url_for('admin.admin_home'))
 
-@ADMIN_USERS.route('/admin/user/<int:user_id>/give', methods=['GET', 'POST'])
+
+@ADMIN_USERS.route("/admin/user/<int:user_id>/give", methods=["GET", "POST"])
 @login.login_required
 @login_manager.admin_required
 def give_user(user_id):
@@ -125,57 +105,55 @@ def give_user(user_id):
 
     Overrides the ticket limit.
     """
-    if flask.request.method != 'POST':
-        return flask.redirect(flask.request.referrer or
-                              flask.url_for('admin.admin_home'))
+    if flask.request.method != "POST":
+        return flask.redirect(
+            flask.request.referrer or flask.url_for("admin.admin_home")
+        )
 
     user = models.User.get_by_id(user_id)
 
     if user:
         try:
-            ticket_type = APP.config['TICKET_TYPES_BY_SLUG'][
-                flask.request.form['give_ticket_type']
+            ticket_type = APP.config["TICKET_TYPES_BY_SLUG"][
+                flask.request.form["give_ticket_type"]
             ]
         except KeyError:
             flask.flash("Invalid/no ticket type selected", "error")
-            return flask.redirect(flask.request.referrer or
-                                  flask.url_for('admin.admin_home'))
+            return flask.redirect(
+                flask.request.referrer or flask.url_for("admin.admin_home")
+            )
 
         if (
-                (
-                    'give_price_pounds' not in flask.request.form or
-                    flask.request.form['give_price_pounds'] == ''
-                ) and (
-                    'give_price_pence' not in flask.request.form or
-                    flask.request.form['give_price_pence'] == ''
-                )
+            "give_price_pounds" not in flask.request.form
+            or flask.request.form["give_price_pounds"] == ""
+        ) and (
+            "give_price_pence" not in flask.request.form
+            or flask.request.form["give_price_pence"] == ""
         ):
             price = ticket_type.price
         else:
-            price = util.parse_pounds_pence(flask.request.form,
-                                            'give_price_pounds',
-                                            'give_price_pence')
+            price = util.parse_pounds_pence(
+                flask.request.form, "give_price_pounds", "give_price_pence"
+            )
 
-        num_tickets = int(flask.request.form['give_num_tickets'])
+        num_tickets = int(flask.request.form["give_num_tickets"])
 
         if (
-                'give_reason' not in flask.request.form or
-                flask.request.form['give_reason'] == ''
+            "give_reason" not in flask.request.form
+            or flask.request.form["give_reason"] == ""
         ):
-            note = 'Given by {0} (#{1}) for no reason.'.format(
-                login.current_user.full_name,
-                login.current_user.object_id
+            note = "Given by {0} (#{1}) for no reason.".format(
+                login.current_user.full_name, login.current_user.object_id
             )
         else:
-            note = 'Given by {0} (#{1}) with reason: {2}.'.format(
+            note = "Given by {0} (#{1}) with reason: {2}.".format(
                 login.current_user.full_name,
                 login.current_user.object_id,
-                flask.request.form['give_reason']
+                flask.request.form["give_reason"],
             )
 
         tickets = [
-            models.Ticket(user, ticket_type.slug, price)
-            for _ in xrange(num_tickets)
+            models.Ticket(user, ticket_type.slug, price) for _ in xrange(num_tickets)
         ]
 
         for ticket in tickets:
@@ -185,68 +163,55 @@ def give_user(user_id):
         DB.session.commit()
 
         APP.log_manager.log_event(
-            'Gave {0} tickets'.format(
-                num_tickets
-            ),
-            tickets=tickets,
-            user=user
+            "Gave {0} tickets".format(num_tickets), tickets=tickets, user=user
         )
 
         flask.flash(
-            'Gave {0} {1} tickets'.format(
-                user.forenames,
-                num_tickets
-            ),
-            'success'
+            "Gave {0} {1} tickets".format(user.forenames, num_tickets), "success"
         )
 
-        return flask.redirect(flask.request.referrer or
-                              flask.url_for('admin_users.view_user',
-                                            user_id=user.object_id))
+        return flask.redirect(
+            flask.request.referrer
+            or flask.url_for("admin_users.view_user", user_id=user.object_id)
+        )
     else:
-        flask.flash(
-            'Could not find user, could not give tickets.',
-            'warning'
+        flask.flash("Could not find user, could not give tickets.", "warning")
+        return flask.redirect(
+            flask.request.referrer or flask.url_for("admin.admin_home")
         )
-        return flask.redirect(flask.request.referrer or
-                              flask.url_for('admin.admin_home'))
 
-@ADMIN_USERS.route('/admin/user/<int:user_id>/note', methods=['GET', 'POST'])
+
+@ADMIN_USERS.route("/admin/user/<int:user_id>/note", methods=["GET", "POST"])
 @login.login_required
 @login_manager.admin_required
 def note_user(user_id):
     """Set the notes field for a user."""
-    if flask.request.method != 'POST':
-        return flask.redirect(flask.request.referrer or
-                              flask.url_for('admin.admin_home'))
+    if flask.request.method != "POST":
+        return flask.redirect(
+            flask.request.referrer or flask.url_for("admin.admin_home")
+        )
 
     user = models.User.get_by_id(user_id)
 
     if user:
-        user.note = flask.request.form['notes']
+        user.note = flask.request.form["notes"]
         DB.session.commit()
 
-        APP.log_manager.log_event(
-            'Updated notes',
-            user=user
-        )
+        APP.log_manager.log_event("Updated notes", user=user)
 
-        flask.flash(
-            'Notes set successfully.',
-            'success'
+        flask.flash("Notes set successfully.", "success")
+        return flask.redirect(
+            flask.request.referrer
+            or flask.url_for("admin_users.view_user", user_id=user.object_id)
         )
-        return flask.redirect(flask.request.referrer or
-                              flask.url_for('admin_users.view_user',
-                                            user_id=user.object_id))
     else:
-        flask.flash(
-            'Could not find user, could not set notes.',
-            'warning'
+        flask.flash("Could not find user, could not set notes.", "warning")
+        return flask.redirect(
+            flask.request.referrer or flask.url_for("admin.admin_home")
         )
-        return flask.redirect(flask.request.referrer or
-                              flask.url_for('admin.admin_home'))
 
-@ADMIN_USERS.route('/admin/user/<int:user_id>/verify')
+
+@ADMIN_USERS.route("/admin/user/<int:user_id>/verify")
 @login.login_required
 @login_manager.admin_required
 def verify_user(user_id):
@@ -262,27 +227,21 @@ def verify_user(user_id):
         user.verified = True
         DB.session.commit()
 
-        APP.log_manager.log_event(
-            'Verified email',
-            user=user
-        )
+        APP.log_manager.log_event("Verified email", user=user)
 
-        flask.flash(
-            'User marked as verified.',
-            'success'
+        flask.flash("User marked as verified.", "success")
+        return flask.redirect(
+            flask.request.referrer
+            or flask.url_for("admin_users.view_user", user_id=user.object_id)
         )
-        return flask.redirect(flask.request.referrer or
-                              flask.url_for('admin_users.view_user',
-                                            user_id=user.object_id))
     else:
-        flask.flash(
-            'Could not find user, could not verify.',
-            'warning'
+        flask.flash("Could not find user, could not verify.", "warning")
+        return flask.redirect(
+            flask.request.referrer or flask.url_for("admin.admin_home")
         )
-        return flask.redirect(flask.request.referrer or
-                              flask.url_for('admin.admin_home'))
 
-@ADMIN_USERS.route('/admin/user/<int:user_id>/demote')
+
+@ADMIN_USERS.route("/admin/user/<int:user_id>/demote")
 @login.login_required
 @login_manager.admin_required
 def demote_user(user_id):
@@ -293,27 +252,21 @@ def demote_user(user_id):
         user.demote()
         DB.session.commit()
 
-        APP.log_manager.log_event(
-            'Demoted user',
-            user=user
-        )
+        APP.log_manager.log_event("Demoted user", user=user)
 
-        flask.flash(
-            'User demoted.',
-            'success'
+        flask.flash("User demoted.", "success")
+        return flask.redirect(
+            flask.request.referrer
+            or flask.url_for("admin_users.view_user", user_id=user.object_id)
         )
-        return flask.redirect(flask.request.referrer or
-                              flask.url_for('admin_users.view_user',
-                                            user_id=user.object_id))
     else:
-        flask.flash(
-            'Could not find user, could not demote.',
-            'warning'
+        flask.flash("Could not find user, could not demote.", "warning")
+        return flask.redirect(
+            flask.request.referrer or flask.url_for("admin.admin_home")
         )
-        return flask.redirect(flask.request.referrer or
-                              flask.url_for('admin.admin_home'))
 
-@ADMIN_USERS.route('/admin/user/<int:user_id>/promote')
+
+@ADMIN_USERS.route("/admin/user/<int:user_id>/promote")
 @login.login_required
 @login_manager.admin_required
 def promote_user(user_id):
@@ -324,27 +277,21 @@ def promote_user(user_id):
         user.promote()
         DB.session.commit()
 
-        APP.log_manager.log_event(
-            'Promoted user',
-            user=user
-        )
+        APP.log_manager.log_event("Promoted user", user=user)
 
-        flask.flash(
-            'User promoted.',
-            'success'
+        flask.flash("User promoted.", "success")
+        return flask.redirect(
+            flask.request.referrer
+            or flask.url_for("admin_users.view_user", user_id=user.object_id)
         )
-        return flask.redirect(flask.request.referrer or
-                              flask.url_for('admin_users.view_user',
-                                            user_id=user.object_id))
     else:
-        flask.flash(
-            'Could not find user, could not promote.',
-            'warning'
+        flask.flash("Could not find user, could not promote.", "warning")
+        return flask.redirect(
+            flask.request.referrer or flask.url_for("admin.admin_home")
         )
-        return flask.redirect(flask.request.referrer or
-                              flask.url_for('admin.admin_home'))
 
-@ADMIN_USERS.route('/admin/user/<int:user_id>/add_manual_battels')
+
+@ADMIN_USERS.route("/admin/user/<int:user_id>/add_manual_battels")
 @login.login_required
 @login_manager.admin_required
 def add_manual_battels(user_id):
@@ -360,27 +307,23 @@ def add_manual_battels(user_id):
     if user:
         user.add_manual_battels()
 
-        APP.log_manager.log_event(
-            'Manually set up battels',
-            user=user
-        )
+        APP.log_manager.log_event("Manually set up battels", user=user)
 
-        flask.flash(
-            'Battels set up for user.',
-            'success'
+        flask.flash("Battels set up for user.", "success")
+        return flask.redirect(
+            flask.request.referrer
+            or flask.url_for("admin_users.view_user", user_id=user.object_id)
         )
-        return flask.redirect(flask.request.referrer or
-                              flask.url_for('admin_users.view_user',
-                                            user_id=user.object_id))
     else:
         flask.flash(
-            'Could not find user, could not manually set up battels.',
-            'warning'
+            "Could not find user, could not manually set up battels.", "warning"
         )
-        return flask.redirect(flask.request.referrer or
-                              flask.url_for('admin.admin_home'))
+        return flask.redirect(
+            flask.request.referrer or flask.url_for("admin.admin_home")
+        )
 
-@ADMIN_USERS.route('/admin/user/<int:user_id>/verify_affiliation')
+
+@ADMIN_USERS.route("/admin/user/<int:user_id>/verify_affiliation")
 @login.login_required
 @login_manager.admin_required
 def verify_affiliation(user_id):
@@ -394,14 +337,12 @@ def verify_affiliation(user_id):
     if user:
         affiliation_logic.verify_affiliation(user)
 
-        APP.log_manager.log_event(
-            'Verified affiliation',
-            user=user
-        )
+        APP.log_manager.log_event("Verified affiliation", user=user)
 
-    return flask.redirect(flask.url_for('admin_users.verify_affiliations'))
+    return flask.redirect(flask.url_for("admin_users.verify_affiliations"))
 
-@ADMIN_USERS.route('/admin/user/<int:user_id>/deny_affiliation')
+
+@ADMIN_USERS.route("/admin/user/<int:user_id>/deny_affiliation")
 @login.login_required
 @login_manager.admin_required
 def deny_affiliation(user_id):
@@ -411,14 +352,12 @@ def deny_affiliation(user_id):
     if user:
         affiliation_logic.deny_affiliation(user)
 
-        APP.log_manager.log_event(
-            'Denied affiliation',
-            user=user
-        )
+        APP.log_manager.log_event("Denied affiliation", user=user)
 
-    return flask.redirect(flask.url_for('admin_users.verify_affiliations'))
+    return flask.redirect(flask.url_for("admin_users.verify_affiliations"))
 
-@ADMIN_USERS.route('/admin/verify_affiliations')
+
+@ADMIN_USERS.route("/admin/verify_affiliations")
 @login.login_required
 @login_manager.admin_required
 def verify_affiliations():
@@ -427,10 +366,13 @@ def verify_affiliations():
     Presents a list of users who have registered but need their affiliation
     verifying with buttons for each to verify/deny the affiliation.
     """
-    return flask.render_template('admin_users/verify_affiliations.html',
-                                 users=affiliation_logic.get_unverified_users())
+    return flask.render_template(
+        "admin_users/verify_affiliations.html",
+        users=affiliation_logic.get_unverified_users(),
+    )
 
-@ADMIN_USERS.route('/admin/user/<int:user_id>/collect', methods=['GET', 'POST'])
+
+@ADMIN_USERS.route("/admin/user/<int:user_id>/collect", methods=["GET", "POST"])
 @login.login_required
 @login_manager.admin_required
 def collect_tickets(user_id):
@@ -443,21 +385,18 @@ def collect_tickets(user_id):
     user = models.User.get_by_id(user_id)
 
     if user:
-        return flask.render_template(
-            'admin_users/collect_tickets.html',
-            user=user
-        )
+        return flask.render_template("admin_users/collect_tickets.html", user=user)
     else:
         flask.flash(
-            'Could not find user, could not process ticket collection.',
-            'warning'
+            "Could not find user, could not process ticket collection.", "warning"
         )
-        return flask.redirect(flask.request.referrer or
-                              flask.url_for('admin.admin_home'))
+        return flask.redirect(
+            flask.request.referrer or flask.url_for("admin.admin_home")
+        )
+
 
 @ADMIN_USERS.route(
-    '/admin/user/<int:user_id>/charge_admin_fee',
-    methods=['GET', 'POST']
+    "/admin/user/<int:user_id>/charge_admin_fee", methods=["GET", "POST"]
 )
 @login.login_required
 @login_manager.admin_required
@@ -467,11 +406,11 @@ def charge_admin_fee(user_id):
 
     if not user:
         flask.flash(
-            'Could not find user, could not process ticket collection.',
-            'warning'
+            "Could not find user, could not process ticket collection.", "warning"
         )
-        return flask.redirect(flask.request.referrer or
-                              flask.url_for('admin.admin_home'))
+        return flask.redirect(
+            flask.request.referrer or flask.url_for("admin.admin_home")
+        )
 
     form = admin_users.AdminFeeForm()
 
@@ -480,38 +419,32 @@ def charge_admin_fee(user_id):
             form.amount.pounds.data * 100 + form.amount.pence.data,
             form.reason.data,
             user,
-            login.current_user
+            login.current_user,
         )
 
         DB.session.add(admin_fee)
         DB.session.commit()
 
         APP.log_manager.log_event(
-            'Created admin fee',
-            user=login.current_user,
-            admin_fee=admin_fee
+            "Created admin fee", user=login.current_user, admin_fee=admin_fee
         )
 
         APP.email_manager.send_template(
             user.email,
-            'Please pay an administration fee.',
-            'admin_fee.email',
+            "Please pay an administration fee.",
+            "admin_fee.email",
             fee=admin_fee,
             payment_url=flask.url_for(
-                'purchase.pay_admin_fee',
+                "purchase.pay_admin_fee",
                 admin_fee_id=admin_fee.object_id,
-                _external=True
-            )
+                _external=True,
+            ),
         )
 
-        flask.flash('Admin fee created.', 'success')
+        flask.flash("Admin fee created.", "success")
 
-        return flask.redirect(
-            flask.url_for('admin_users.view_user', user_id=user_id)
-        )
+        return flask.redirect(flask.url_for("admin_users.view_user", user_id=user_id))
 
     return flask.render_template(
-        'admin_users/charge_admin_fee.html',
-        user=user,
-        form=form
+        "admin_users/charge_admin_fee.html", user=user, form=form
     )

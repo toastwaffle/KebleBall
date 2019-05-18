@@ -2,8 +2,10 @@
 """Script to update matching from users to Battels accounts."""
 
 from __future__ import unicode_literals
+from __future__ import print_function
 
 import flask_script as script
+
 # from flask.ext import script
 
 from eisitirio import app
@@ -13,10 +15,11 @@ from eisitirio.database import models
 APP = app.APP
 DB = db.DB
 
+
 class UpdateBattelsCommand(script.Command):
     """Flask-Script command for rematching users to battels accounts."""
 
-    help = 'Match users to battels accounts by email'
+    help = "Match users to battels accounts by email"
 
     @staticmethod
     def run():
@@ -24,7 +27,7 @@ class UpdateBattelsCommand(script.Command):
         with APP.app_context():
             for user in models.User.query.all():
                 if user.battels is not None and user.affiliation_verified is None:
-                    print user.full_name
+                    print (user.full_name)
                     user.affiliation_verified = True
                     DB.session.commit()
                     continue

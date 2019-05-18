@@ -9,85 +9,39 @@ from eisitirio.database import db
 
 DB = db.DB
 
+
 class Voucher(DB.Model):
     """Model for a discount voucher."""
-    __tablename__ = 'voucher'
 
-    code = DB.Column(
-        DB.Unicode(30),
-        nullable=False
-    )
-    expires = DB.Column(
-        DB.DateTime(),
-        nullable=True
-    )
+    __tablename__ = "voucher"
+
+    code = DB.Column(DB.Unicode(30), nullable=False)
+    expires = DB.Column(DB.DateTime(), nullable=True)
     discount_type = DB.Column(
-        DB.Enum(
-            'Fixed Price',
-            'Fixed Discount',
-            'Percentage Discount'
-        ),
-        nullable=False
+        DB.Enum("Fixed Price", "Fixed Discount", "Percentage Discount"), nullable=False
     )
-    discount_value = DB.Column(
-        DB.Integer(),
-        nullable=False
-    )
-    applies_to = DB.Column(
-        DB.Enum(
-            'Ticket',
-            'Transaction'
-        ),
-        nullable=False
-    )
-    single_use = DB.Column(
-        DB.Boolean(),
-        nullable=False
-    )
-    used = DB.Column(
-        DB.Boolean(),
-        default=False,
-        nullable=True
-    )
+    discount_value = DB.Column(DB.Integer(), nullable=False)
+    applies_to = DB.Column(DB.Enum("Ticket", "Transaction"), nullable=False)
+    single_use = DB.Column(DB.Boolean(), nullable=False)
+    used = DB.Column(DB.Boolean(), default=False, nullable=True)
 
-    used_by_id = DB.Column(
-        DB.Integer,
-        DB.ForeignKey('user.object_id'),
-        nullable=True
-    )
+    used_by_id = DB.Column(DB.Integer, DB.ForeignKey("user.object_id"), nullable=True)
     used_by = DB.relationship(
-        'User',
-        backref=DB.backref(
-            'vouchers_used',
-            lazy='dynamic'
-        )
+        "User", backref=DB.backref("vouchers_used", lazy="dynamic")
     )
 
     def __init__(
-            self,
-            code,
-            expires,
-            discount_type,
-            discount_value,
-            applies_to,
-            single_use
+        self, code, expires, discount_type, discount_value, applies_to, single_use
     ):
         if discount_type not in [
-                'Fixed Price',
-                'Fixed Discount',
-                'Percentage Discount'
+            "Fixed Price",
+            "Fixed Discount",
+            "Percentage Discount",
         ]:
-            raise ValueError(
-                '{0} is not a valid discount type'.format(discount_type)
-            )
+            raise ValueError("{0} is not a valid discount type".format(discount_type))
 
-        if applies_to not in [
-                'Ticket',
-                'Transaction'
-        ]:
-            raise ValueError(
-                '{0} is not a valid application'.format(applies_to)
-            )
+        if applies_to not in ["Ticket", "Transaction"]:
+            raise ValueError("{0} is not a valid application".format(applies_to))
 
         self.code = code
         self.discount_type = discount_type
@@ -101,7 +55,7 @@ class Voucher(DB.Model):
             self.expires = expires
 
     def __repr__(self):
-        return '<Voucher: {0}/{1}>'.format(self.object_id, self.code)
+        return "<Voucher: {0}/{1}>".format(self.object_id, self.code)
 
     @staticmethod
     def get_by_code(code):
@@ -123,19 +77,16 @@ class Voucher(DB.Model):
             mutated tickets, and an error message
         """
         if self.single_use and self.used:
-            return (False, tickets, 'Voucher has already been used.')
+            return (False, tickets, "Voucher has already been used.")
 
-        if (
-                self.expires is not None and
-                self.expires < datetime.datetime.utcnow()
-        ):
-            return (False, tickets, 'Voucher has expired.')
+        if self.expires is not None and self.expires < datetime.datetime.utcnow():
+            return (False, tickets, "Voucher has expired.")
 
         self.used = True
         if self.single_use:
             self.used_by = user
 
-        if self.applies_to == 'Ticket':
+        if self.applies_to == "Ticket":
             tickets[0] = self.apply_to_ticket(tickets[0])
             return (True, tickets, None)
         else:
@@ -153,15 +104,13 @@ class Voucher(DB.Model):
         Returns:
             (ticket) the mutated ticket
         """
-        if self.discount_type == 'Fixed Price':
+        if self.discount_type == "Fixed Price":
             ticket.price = self.discount_value
-        elif self.discount_type == 'Fixed Discount':
+        elif self.discount_type == "Fixed Discount":
             ticket.price = ticket.price - self.discount_value
         else:
             ticket.price = ticket.price * (100 - self.discount_value) / 100
 
-        ticket.add_note(
-            'Used voucher {0}/{1}'.format(self.object_id, self.code)
-        )
+        ticket.add_note("Used voucher {0}/{1}".format(self.object_id, self.code))
 
         return ticket

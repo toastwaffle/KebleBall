@@ -7,30 +7,30 @@ from eisitirio.database import db
 
 DB = db.DB
 
+
 class Affiliation(DB.Model):
     """Model for representing a users affiliation to their college."""
-    __tablename__ = 'affiliation'
 
-    name = DB.Column(
-        DB.Unicode(25),
-        nullable=False
-    )
+    __tablename__ = "affiliation"
+
+    name = DB.Column(DB.Unicode(25), nullable=False)
 
     def __init__(self, name):
         self.name = name
 
     def __repr__(self):
-        return '<Affiliation {0}: {1}>'.format(self.object_id, self.name)
+        return "<Affiliation {0}: {1}>".format(self.object_id, self.name)
+
 
 def get_static():
     """Get static instances of the Affiliation model."""
     return [
-        Affiliation('Student'),
-        Affiliation('Graduand'),
-        Affiliation('Graduate/Alumnus'),
-        Affiliation('Staff/Fellow'),
-        Affiliation('Foreign Exchange Student'),
-        Affiliation('Other'),
-        Affiliation('None'),
-        Affiliation('Contest Winner'),
+        Affiliation("Student"),
+        Affiliation("Graduand"),
+        Affiliation("Graduate/Alumnus"),
+        Affiliation("Staff/Fellow"),
+        Affiliation("Foreign Exchange Student"),
+        Affiliation("Other"),
+        Affiliation("None"),
+        Affiliation("Contest Winner"),
     ]

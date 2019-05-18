@@ -14,14 +14,14 @@ class BlankIsZeroIntegerField(wtforms_components.IntegerField):
     def process_formdata(self, valuelist):
         """Coerce the user input to an integer."""
         if valuelist:
-            if valuelist[0] == '':
+            if valuelist[0] == "":
                 self.data = 0
             else:
                 try:
                     self.data = int(valuelist[0])
                 except ValueError:
                     self.data = None
-                    raise ValueError(self.gettext('Not a valid integer value'))
+                    raise ValueError(self.gettext("Not a valid integer value"))
 
 
 class PoundsPenceRange(object):
@@ -30,23 +30,17 @@ class PoundsPenceRange(object):
     def __init__(self, message=None, **kwargs):
         self.message = message
 
-        if 'min' in kwargs:
-            self.min = kwargs['min']
-        elif 'pounds_min' in kwargs or 'pence_min' in kwargs:
-            self.min = (
-                100 * kwargs.get('pounds_min', 0) +
-                kwargs.get('pence_min', 0)
-            )
+        if "min" in kwargs:
+            self.min = kwargs["min"]
+        elif "pounds_min" in kwargs or "pence_min" in kwargs:
+            self.min = 100 * kwargs.get("pounds_min", 0) + kwargs.get("pence_min", 0)
         else:
             self.min = None
 
-        if 'max' in kwargs:
-            self.max = kwargs['max']
-        elif 'pounds_max' in kwargs or 'pence_max' in kwargs:
-            self.max = (
-                100 * kwargs.get('pounds_max', 0) +
-                kwargs.get('pence_max', 0)
-            )
+        if "max" in kwargs:
+            self.max = kwargs["max"]
+        elif "pounds_max" in kwargs or "pence_max" in kwargs:
+            self.max = 100 * kwargs.get("pounds_max", 0) + kwargs.get("pence_max", 0)
         else:
             self.max = None
 
@@ -58,9 +52,8 @@ class PoundsPenceRange(object):
                 raise wtforms.ValidationError(self.message)
             else:
                 raise wtforms.ValidationError(
-                    'Value must not be less than £{0:d}.{1:02d}'.format(
-                        self.min / 100,
-                        self.min % 100
+                    "Value must not be less than £{0:d}.{1:02d}".format(
+                        self.min / 100, self.min % 100
                     )
                 )
 
@@ -69,9 +62,8 @@ class PoundsPenceRange(object):
                 raise wtforms.ValidationError(self.message)
             else:
                 raise wtforms.ValidationError(
-                    'Value must not be greater than £{0:d}.{1:02d}'.format(
-                        self.max / 100,
-                        self.max % 100
+                    "Value must not be greater than £{0:d}.{1:02d}".format(
+                        self.max / 100, self.max % 100
                     )
                 )
 
@@ -85,28 +77,20 @@ def make_pounds_pence_subform_class(validate_range=False, **kwargs):
         pounds_validators = []
 
     pounds_validators.append(
-        validators.NumberRange(
-            min=0,
-            message='Pounds value must not be negative.'
-        )
+        validators.NumberRange(min=0, message="Pounds value must not be negative.")
     )
 
     class PoundsPence(wtforms.Form):
         """Subform for getting an amount in pounds and pence."""
 
-        pounds = BlankIsZeroIntegerField(
-            label='Pounds',
-            validators=pounds_validators
-        )
+        pounds = BlankIsZeroIntegerField(label="Pounds", validators=pounds_validators)
         pence = BlankIsZeroIntegerField(
-            label='Pence',
+            label="Pence",
             validators=[
                 validators.NumberRange(
-                    min=0,
-                    max=99,
-                    message='Pence value must be between 0 and 99.'
+                    min=0, max=99, message="Pence value must be between 0 and 99."
                 )
-            ]
+            ],
         )
 
     return PoundsPence

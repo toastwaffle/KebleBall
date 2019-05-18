@@ -11,44 +11,23 @@ from eisitirio.database import db
 DB = db.DB
 APP = app.APP
 
+
 class Transaction(DB.Model):
     """Model for representing a monetary exchange transaction."""
-    __tablename__ = 'transaction'
+
+    __tablename__ = "transaction"
 
     payment_method = DB.Column(
-        DB.Enum(
-            'Battels',
-            'Card',
-            'Free',
-            'Dummy'
-        ),
-        nullable=False
+        DB.Enum("Battels", "Card", "Free", "Dummy"), nullable=False
     )
 
-    paid = DB.Column(
-        DB.Boolean,
-        default=False,
-        nullable=False
-    )
-    created = DB.Column(
-        DB.DateTime(),
-        nullable=False
-    )
+    paid = DB.Column(DB.Boolean, default=False, nullable=False)
+    created = DB.Column(DB.DateTime(), nullable=False)
 
-    user_id = DB.Column(
-        DB.Integer,
-        DB.ForeignKey('user.object_id'),
-        nullable=False
-    )
-    user = DB.relationship(
-        'User',
-        backref=DB.backref(
-            'transactions',
-            lazy='dynamic'
-        )
-    )
+    user_id = DB.Column(DB.Integer, DB.ForeignKey("user.object_id"), nullable=False)
+    user = DB.relationship("User", backref=DB.backref("transactions", lazy="dynamic"))
 
-    __mapper_args__ = {'polymorphic_on': payment_method}
+    __mapper_args__ = {"polymorphic_on": payment_method}
 
     def __init__(self, user, payment_method):
         self.user = user
@@ -57,9 +36,8 @@ class Transaction(DB.Model):
         self.created = datetime.datetime.utcnow()
 
     def __repr__(self):
-        return '<Transaction {0}: {1} item(s)>'.format(
-            self.object_id,
-            self.items.count()
+        return "<Transaction {0}: {1} item(s)>".format(
+            self.object_id, self.items.count()
         )
 
     @property
@@ -72,7 +50,7 @@ class Transaction(DB.Model):
         """Get the total value of the transaction."""
         value_str = "{0:03d}".format(self.value)
 
-        return value_str[:-2] + '.' + value_str[-2:]
+        return value_str[:-2] + "." + value_str[-2:]
 
     @property
     def tickets(self):
@@ -80,9 +58,7 @@ class Transaction(DB.Model):
 
         Returns a list of Ticket objects.
         """
-        return list(
-            item.ticket for item in self.items if item.item_type == 'Ticket'
-        )
+        return list(item.ticket for item in self.items if item.item_type == "Ticket")
 
     @property
     def postage(self):
@@ -92,9 +68,7 @@ class Transaction(DB.Model):
         """
         try:
             return list(
-                item.postage
-                for item in self.items
-                if item.item_type == 'Postage'
+                item.postage for item in self.items if item.item_type == "Postage"
             )[0]
         except IndexError:
             return None
@@ -107,9 +81,7 @@ class Transaction(DB.Model):
         """
         try:
             return list(
-                item.admin_fee
-                for item in self.items
-                if item.item_type == 'AdminFee'
+                item.admin_fee for item in self.items if item.item_type == "AdminFee"
             )[0]
         except IndexError:
             return None
@@ -132,15 +104,18 @@ class Transaction(DB.Model):
         if admin_fee:
             admin_fee.mark_as_paid()
 
+
 class FreeTransaction(Transaction):
     """Model for representing a transaction with no payment required.
 
     This class has to exist for the polymorphic typing to work.
     """
-    __mapper_args__ = {'polymorphic_identity': 'Free'}
+
+    __mapper_args__ = {"polymorphic_identity": "Free"}
 
     def __init__(self, user):
-        super(FreeTransaction, self).__init__(user, 'Free')
+        super(FreeTransaction, self).__init__(user, "Free")
+
 
 class DummyTransaction(Transaction):
     """Model for representing a dummy transaction.
@@ -150,7 +125,8 @@ class DummyTransaction(Transaction):
     style, and so this class and the corresponding identity can be removed on
     clean installs.
     """
-    __mapper_args__ = {'polymorphic_identity': 'Dummy'}
+
+    __mapper_args__ = {"polymorphic_identity": "Dummy"}
 
     def __init__(self, user):
-        super(DummyTransaction, self).__init__(user, 'Dummy')
+        super(DummyTransaction, self).__init__(user, "Dummy")

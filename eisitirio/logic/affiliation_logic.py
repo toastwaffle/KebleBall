@@ -13,6 +13,7 @@ from eisitirio.database import models
 APP = app.APP
 DB = db.DB
 
+
 def verify_affiliation(user):
     """Mark the users affiliation as verified.
 
@@ -27,13 +28,14 @@ def verify_affiliation(user):
 
     APP.email_manager.send_template(
         user.email,
-        'Affiliation Verified - Buy Your Tickets Now!',
-        'affiliation_verified.email',
+        "Affiliation Verified - Buy Your Tickets Now!",
+        "affiliation_verified.email",
         name=user.forenames,
-        url=flask.url_for('purchase.purchase_home', _external=True)
+        url=flask.url_for("purchase.purchase_home", _external=True),
     )
 
     DB.session.commit()
+
 
 def deny_affiliation(user):
     """Mark the users affiliation as invalid.
@@ -47,6 +49,7 @@ def deny_affiliation(user):
     user.affiliation_verified = False
 
     DB.session.commit()
+
 
 def update_affiliation(user, new_college, new_affiliation):
     """Change the users affiliation.
@@ -62,21 +65,15 @@ def update_affiliation(user, new_college, new_affiliation):
     user.affiliation = new_affiliation
 
     if (
-            (
-                old_affiliation != new_affiliation or
-                old_college != new_college
-            ) and
-            (	
-		new_college.name in APP.config['HOST_COLLEGES'] or
-		new_affiliation.name == 'Contest Winner'
-	    ) and
-            new_affiliation.name not in [
-                'Other',
-                'None',
-                'Graduate/Alumnus'
-            ]
+        (old_affiliation != new_affiliation or old_college != new_college)
+        and (
+            new_college.name in APP.config["HOST_COLLEGES"]
+            or new_affiliation.name == "Contest Winner"
+        )
+        and new_affiliation.name not in ["Other", "None", "Graduate/Alumnus"]
     ):
         user.affiliation_verified = None
+
 
 def maybe_verify_affiliation(user):
     """Check if a user's affiliation can be verified
@@ -85,59 +82,49 @@ def maybe_verify_affiliation(user):
     otherwise sends an email to the ball ticketing officer to ask them to
     verify it manually
     """
-    if (
-            user.affiliation_verified is None and
-            not APP.config['TICKETS_ON_SALE']
-    ):
-        if (
-		user.affiliation.name != 'Contest Winner' and
-	       	(
-                    user.college.name not in APP.config['HOST_COLLEGES'] or
-                    user.affiliation.name in [
-                        'Other',
-                    	'None',
-                    	'Graduate/Alumnus'
-                    ] or
-		    (
-                    	user.battels is not None and
-			user.affiliation.name == 'Student'
-		    )
-                )
+    if user.affiliation_verified is None and not APP.config["TICKETS_ON_SALE"]:
+        if user.affiliation.name != "Contest Winner" and (
+            user.college.name not in APP.config["HOST_COLLEGES"]
+            or user.affiliation.name in ["Other", "None", "Graduate/Alumnus"]
+            or (user.battels is not None and user.affiliation.name == "Student")
         ):
             user.affiliation_verified = True
             DB.session.commit()
             return
 
         APP.email_manager.send_template(
-            APP.config['TICKETS_EMAIL'],
-            'Verify Affiliation',
-            'verify_affiliation.email',
+            APP.config["TICKETS_EMAIL"],
+            "Verify Affiliation",
+            "verify_affiliation.email",
             user=user,
-            url=flask.url_for('admin_users.verify_affiliations',
-                              _external=True)
+            url=flask.url_for("admin_users.verify_affiliations", _external=True),
         )
         flask.flash(
             (
-                'Your affiliation must be verified before you will be '
-                'able to purchase tickets. You will receive an email when '
-                'your status has been verified. This process may take up to 24 '
-                'hours.'
+                "Your affiliation must be verified before you will be "
+                "able to purchase tickets. You will receive an email when "
+                "your status has been verified. This process may take up to 24 "
+                "hours."
             ),
-            'warning'
+            "warning",
         )
+
 
 def get_unverified_users():
     """Get all the users who should be verified but aren't."""
-    return models.User.query.filter(
-        (
-	    sqlalchemy.or_(
-            	models.User.college.has(name=college)
-            	for college in APP.config['HOST_COLLEGES']
-	    )
-	) |
-	( 
-            models.User.affiliation_id == '8'
+    return (
+        models.User.query.filter(
+            (
+                sqlalchemy.or_(
+                    models.User.college.has(name=college)
+                    for college in APP.config["HOST_COLLEGES"]
+                )
+            )
+            | (models.User.affiliation_id == "8")
         )
-    ).filter(
-        models.User.affiliation_verified == None # pylint: disable=singleton-comparison
-    ).all()
+        .filter(
+            models.User.affiliation_verified
+            == None  # pylint: disable=singleton-comparison
+        )
+        .all()
+    )

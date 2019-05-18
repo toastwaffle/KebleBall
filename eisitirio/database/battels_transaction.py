@@ -10,29 +10,25 @@ from eisitirio.database import transaction
 DB = db.DB
 APP = app.APP
 
+
 class BattelsTransaction(transaction.Transaction):
     """Model for representing a battels transaction."""
-    __tablename__ = 'battels_transaction'
-    __mapper_args__ = {'polymorphic_identity': 'Battels'}
+
+    __tablename__ = "battels_transaction"
+    __mapper_args__ = {"polymorphic_identity": "Battels"}
 
     object_id = DB.Column(
-        DB.Integer(),
-        DB.ForeignKey('transaction.object_id'),
-        primary_key=True
+        DB.Integer(), DB.ForeignKey("transaction.object_id"), primary_key=True
     )
 
-    battels_term = DB.Column(
-        DB.Unicode(4),
-        nullable=True
-    )
+    battels_term = DB.Column(DB.Unicode(4), nullable=True)
 
     def __init__(self, user):
-        super(BattelsTransaction, self).__init__(user, 'Battels')
+        super(BattelsTransaction, self).__init__(user, "Battels")
 
     def __repr__(self):
-        return '<BattelsTransaction {0}: {1} item(s)>'.format(
-            self.object_id,
-            self.items.count()
+        return "<BattelsTransaction {0}: {1} item(s)>".format(
+            self.object_id, self.items.count()
         )
 
     def charge(self, term):
@@ -44,9 +40,9 @@ class BattelsTransaction(transaction.Transaction):
         self.mark_as_paid()
 
         APP.log_manager.log_event(
-            'Completed Battels Payment',
+            "Completed Battels Payment",
             tickets=self.tickets,
             user=self.user,
             transaction=self,
-            commit=False
+            commit=False,
         )

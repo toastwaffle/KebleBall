@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import random
 import string
 
+
 def generate_key(length, choices=None):
     """Generate a randomised key of a given length.
 
@@ -21,13 +22,9 @@ def generate_key(length, choices=None):
         (str) a randomly generated string
     """
     if choices is None:
-        choices = (
-            string.ascii_lowercase +
-            string.ascii_uppercase +
-            string.digits
-        )
+        choices = string.ascii_lowercase + string.ascii_uppercase + string.digits
 
-    return ''.join(random.choice(choices) for x in xrange(length))
+    return "".join(random.choice(choices) for x in xrange(length))
 
 
 def parse_pounds_pence(form, pounds_key, pence_key):
@@ -65,50 +62,24 @@ def format_timedelta(td):
     components = []
 
     if weeks:
-        components.append(
-            "{0} week{1}".format(
-                weeks,
-                "s" if weeks > 1 else ""
-            )
-        )
+        components.append("{0} week{1}".format(weeks, "s" if weeks > 1 else ""))
 
     if days:
-        components.append(
-            "{0} day{1}".format(
-                days,
-                "s" if days > 1 else ""
-            )
-        )
+        components.append("{0} day{1}".format(days, "s" if days > 1 else ""))
 
     if hours:
-        components.append(
-            "{0} hour{1}".format(
-                hours,
-                "s" if hours > 1 else ""
-            )
-        )
+        components.append("{0} hour{1}".format(hours, "s" if hours > 1 else ""))
 
     if minutes:
-        components.append(
-            "{0} minute{1}".format(
-                minutes,
-                "s" if minutes > 1 else ""
-            )
-        )
+        components.append("{0} minute{1}".format(minutes, "s" if minutes > 1 else ""))
 
     if seconds:
-        components.append(
-            "{0} second{1}".format(
-                seconds,
-                "s" if seconds > 1 else ""
-            )
-        )
+        components.append("{0} second{1}".format(seconds, "s" if seconds > 1 else ""))
 
     if td.microseconds:
         components.append(
             "{0} microsecond{1}".format(
-                td.microseconds,
-                "s" if td.microseconds > 1 else ""
+                td.microseconds, "s" if td.microseconds > 1 else ""
             )
         )
 
@@ -117,7 +88,4 @@ def format_timedelta(td):
     elif len(components) == 1:
         return components[0]
     else:
-        return "{0} and {1}".format(
-            components[0],
-            components[1]
-        )
+        return "{0} and {1}".format(components[0], components[1])
