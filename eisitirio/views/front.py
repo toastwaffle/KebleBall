@@ -183,6 +183,7 @@ def register():
         flask.request.form["phone"],
         models.College.get_by_id(flask.request.form["college"]),
         models.Affiliation.get_by_id(flask.request.form["affiliation"]),
+        models.AffiliationListEntry.get_by_email(flask.request.form["email"]),
         photo,
     )
 

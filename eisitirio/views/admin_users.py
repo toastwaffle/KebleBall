@@ -342,6 +342,25 @@ def verify_affiliation(user_id):
     return flask.redirect(flask.url_for("admin_users.verify_affiliations"))
 
 
+@ADMIN_USERS.route("/admin/user/<int:user_id>/use_list_affiliation")
+@login.login_required
+@login_manager.admin_required
+def use_list_affiliation(user_id):
+    """Copy a user's affiliation from the affiliations list."""
+    user = models.User.get_by_id(user_id)
+
+    if user:
+        if affiliation_logic.use_list_affiliation(user):
+            APP.log_manager.log_event(
+                "Set user to affiliation {0} from list and verified".format(
+                    user.affiliation.name
+                ),
+                user=user,
+            )
+
+    return flask.redirect(flask.url_for("admin_users.verify_affiliations"))
+
+
 @ADMIN_USERS.route("/admin/user/<int:user_id>/deny_affiliation")
 @login.login_required
 @login_manager.admin_required
@@ -370,6 +389,30 @@ def verify_affiliations():
         "admin_users/verify_affiliations.html",
         users=affiliation_logic.get_unverified_users(),
     )
+
+
+@ADMIN_USERS.route("/admin/manage_affiliation_list")
+@login.login_required
+@login_manager.admin_required
+def manage_affiliation_list():
+    """Allow management of the affiliations list."""
+    return flask.render_template(
+        "admin_users/manage_affiliation_list.html",
+        list=models.AffiliationListEntry.query.all(),
+    )
+
+
+@ADMIN_USERS.route("/admin/update_affiliation_list", methods=["GET", "POST"])
+@login.login_required
+@login_manager.admin_required
+def update_affiliation_list():
+    """Update the affiliations list."""
+    if flask.request.method != "POST":
+        return flask.redirect(flask.url_for("router"))
+
+    affiliation_logic.update_affiliation_list(flask.request.files["affiliation_list"])
+
+    return flask.redirect(flask.url_for("admin_users.manage_affiliation_list"))
 
 
 @ADMIN_USERS.route("/admin/user/<int:user_id>/collect", methods=["GET", "POST"])

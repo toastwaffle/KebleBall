@@ -52,7 +52,7 @@ class Ticket(DB.Model):
     def __init__(self, owner, ticket_type, price):
         self.owner = owner
         self.ticket_type = ticket_type
-        self.price = price
+        self.price_without_addons = price
 
         self.expires = datetime.datetime.utcnow() + APP.config["TICKET_EXPIRY_TIME"]
 
@@ -91,11 +91,6 @@ class Ticket(DB.Model):
             return "Unknown Payment Method"
 
     @property
-    def price(self):
-        """Get the price of the ticket."""
-        return self.price_
-
-    @property
     def status(self):
         """Get the status of this ticket."""
         if self.cancelled:
@@ -117,12 +112,24 @@ class Ticket(DB.Model):
         else:
             return "Held by {0}.".format(self.holder.full_name)
 
-    @price.setter
-    def price(self, value):
+    @property
+    def price_without_addons(self):
+        """Get the price of the ticket."""
+        return self.price_
+
+    @property
+    def price(self):
+        """Get the price of the ticket including addons."""
+        return self.price_without_addons + sum(
+            addon.price for addon in self.addons.all()
+        )
+
+    @price_without_addons.setter
+    def price_without_addons(self, value):
         """Set the price of the ticket."""
         self.price_ = max(value, 0)
 
-        if self.price_ == 0:
+        if self.price == 0:
             self.mark_as_paid()
 
     @hybrid.hybrid_property
@@ -145,6 +152,22 @@ class Ticket(DB.Model):
         else:
             self.note = self.note + note
 
+    @property
+    def owner_affiliation_reference(self):
+        try:
+            return self.owner.affiliation_list_entry.affiliation_reference or None
+        except AttributeError:
+            return "N/A"
+
+    @property
+    def addons_str(self):
+        addons = self.addons.all()
+        if not addons:
+            return "None"
+        return ", ".join(
+            sorted(APP.config["ADDONS_BY_SLUG"][addon.slug].name for addon in addons)
+        )
+
     @staticmethod
     def count():
         """How many tickets have been sold."""
@@ -160,6 +183,7 @@ class Ticket(DB.Model):
             [
                 "Ticket ID",
                 "Ticket Type",
+                "Addons",
                 "Paid",
                 "Collected",
                 "Entered",
@@ -171,6 +195,8 @@ class Ticket(DB.Model):
                 "Barcode",
                 "Owner' User ID",
                 "Owner's Name",
+                "Owner's Email",
+                "Owner's Affiliation Reference",
             ]
         )
 
@@ -180,6 +206,7 @@ class Ticket(DB.Model):
             [
                 self.object_id,
                 self.ticket_type,
+                self.addons_str,
                 "Yes" if self.paid else "No",
                 "Yes" if self.collected else "No",
                 "Yes" if self.entered else "No",
@@ -195,5 +222,7 @@ class Ticket(DB.Model):
                 self.barcode if self.barcode is not None else "N/A",
                 self.owner_id,
                 self.owner.full_name.encode("utf-8"),
+                self.owner.email,
+                self.owner_affiliation_reference,
             ]
         )

@@ -42,6 +42,9 @@ def cancel_tickets(tickets, quiet=False):
             continue
         if not ticket.paid or ticket.payment_method == "Free":
             ticket.cancelled = True
+            ticket.holder = None
+            for addon in ticket.addons.all():
+                addon.cancelled = True
             cancelled.append(ticket)
         # no longer allow refunds for card transactions
         elif ticket.payment_method in ["Battels"]:

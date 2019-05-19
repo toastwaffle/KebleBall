@@ -17,8 +17,6 @@ def _ticket_is_cancellable(ticket):
         return False
     elif ticket.collected:
         return False
-    elif ticket.has_holder():
-        return False
     elif not ticket.paid:
         return True
     elif ticket.payment_method == "Card":
@@ -110,6 +108,7 @@ def be_reclaimed(ticket):
         or (
             not app.APP.config["LOCKDOWN_MODE"]
             and app.APP.config["ENABLE_RECLAIMING_TICKETS"]
+            and not ticket.owner == ticket.holder
         )
     )
 

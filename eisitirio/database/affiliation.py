@@ -26,11 +26,10 @@ def get_static():
     """Get static instances of the Affiliation model."""
     return [
         Affiliation("Student"),
-        Affiliation("Graduand"),
-        Affiliation("Graduate/Alumnus"),
+        Affiliation("Alumnus (<25 years)"),
+        Affiliation("Alumnus (>=25 years)"),
         Affiliation("Staff/Fellow"),
-        Affiliation("Foreign Exchange Student"),
+        Affiliation("Contest Winner"),
         Affiliation("Other"),
         Affiliation("None"),
-        Affiliation("Contest Winner"),
     ]

@@ -78,14 +78,24 @@ def purchase_home():
             return flask.redirect(flask.url_for("dashboard.dashboard_home"))
 
     num_tickets = {ticket_type.slug: 0 for ticket_type, _ in ticket_info.ticket_types}
+    addons_selected = {addon.slug: False for addon, _ in ticket_info.addons}
 
     if flask.request.method == "POST":
         for ticket_type, _ in ticket_info.ticket_types:
             num_tickets[ticket_type.slug] = int(
                 flask.request.form["num_tickets_{0}".format(ticket_type.slug)]
             )
+        for addon, _ in ticket_info.addons:
+            try:
+                addons_selected[addon.slug] = (
+                    flask.request.form["addon_{0}".format(addon.slug)] == "Yes"
+                )
+            except KeyError:
+                pass
 
-        flashes = purchase_logic.validate_tickets(ticket_info, num_tickets)
+        flashes = purchase_logic.validate_tickets(
+            ticket_info, num_tickets, addons_selected
+        )
 
         payment_method, payment_term = purchase_logic.check_payment_method(flashes)
 
@@ -119,11 +129,12 @@ def purchase_home():
                 "purchase/purchase_home.html",
                 form=flask.request.form,
                 num_tickets=num_tickets,
+                addons_selected=addons_selected,
                 ticket_info=ticket_info,
             )
 
-        tickets = purchase_logic.create_tickets(
-            login.current_user, ticket_info, num_tickets
+        tickets, addons = purchase_logic.create_tickets(
+            login.current_user, ticket_info, num_tickets, addons_selected
         )
 
         if voucher is not None:
@@ -145,6 +156,7 @@ def purchase_home():
                 DB.session.add(roundup_donation)
 
         DB.session.add_all(tickets)
+        DB.session.add_all(addons)
         DB.session.commit()
 
         APP.log_manager.log_event(
@@ -376,9 +388,14 @@ def resell():
 
         for ticket in tickets:
             if ticket.cancelled:
-                new_tickets.append(
-                    models.Ticket(resell_to, ticket_type.slug, ticket_type.price)
+                new_ticket = models.Ticket(
+                    resell_to, ticket_type.slug, ticket_type.price
                 )
+                new_tickets.append(new_ticket)
+                for addon in ticket.addons:
+                    DB.session.add(
+                        models.TicketAddon(addon.slug, addon.price, new_ticket)
+                    )
             else:
                 found_uncancelled = True
 

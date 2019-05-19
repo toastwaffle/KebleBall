@@ -7,7 +7,7 @@
     <section id="group_purchase_dashboard" class="columns">
         {% if not current_user.purchase_group %}
 	    <p style="font-size:x-large;">Please read this BEFORE general release.</p>
-            <p>Group purchase allows you and your friends to ensure that you all get the tickets you want (during general release, there is a limit of {{ template_config['GENERAL_RELEASE_MAX_TICKETS'] }} tickets per person).</p>
+            <p>Group purchase allows you and your friends to ensure that you all get the tickets you want (there is a limit of {{ template_config['MAX_TICKETS'] }} tickets per person).</p>
             <p>By setting up/joining a purchase group, you and your friends can pool your ticket allowances to get all the tickets you need, whilst ensuring that nobody gets left without a ticket.</p>
             <p>When the general release starts, the leader of your group will be responsible for visiting the purchase page and reserving the tickets requested by everybody in the group. The tickets will then be allocated to each group member as appropriate for individual payment. Please note that tickets will expire if not paid for within {{ format_timedelta(template_config['TICKET_EXPIRY_TIME']) }}. This means that after the Group Leader reserved the tickets during general release, every member of the group should Log In to their accounts and pay for their tickets within {{ format_timedelta(template_config['TICKET_EXPIRY_TIME'])}}. This limit gives the opportunity to pay the tickets after the rush hour during the general release.</p>
             <p>After you created/joined a group you need to request your tickets by filling the number in and pressing "Update Request" button.

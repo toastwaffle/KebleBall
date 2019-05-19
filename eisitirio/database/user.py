@@ -12,6 +12,7 @@ from eisitirio import app
 from eisitirio.database import battels
 from eisitirio.database import db
 from eisitirio.database import photo as photo_model  # pylint: disable=unused-import
+from eisitirio.database import affiliation_list_entry  # pylint: disable=unused-import
 from eisitirio.database import ticket
 from eisitirio.helpers import util
 
@@ -61,6 +62,13 @@ class User(DB.Model):
         "Affiliation", backref=DB.backref("users", lazy="dynamic")
     )
 
+    affiliation_list_entry_id = DB.Column(
+        DB.Integer, DB.ForeignKey("affiliation_list_entry.object_id"), nullable=True
+    )
+    affiliation_list_entry = DB.relationship(
+        "AffiliationListEntry", backref=DB.backref("user", uselist=False)
+    )
+
     battels_id = DB.Column(
         DB.Integer, DB.ForeignKey("battels.object_id"), nullable=True
     )
@@ -72,7 +80,16 @@ class User(DB.Model):
     photo = DB.relationship("Photo", backref=DB.backref("user", uselist=False))
 
     def __init__(
-        self, email, password, forenames, surname, phone, college, affiliation, photo
+        self,
+        email,
+        password,
+        forenames,
+        surname,
+        phone,
+        college,
+        affiliation,
+        affiliation_list_entry,
+        photo,
     ):
         self.email = email
         self.forenames = forenames
@@ -80,6 +97,7 @@ class User(DB.Model):
         self.phone = phone
         self.college = college
         self.affiliation = affiliation
+        self.affiliation_list_entry = affiliation_list_entry
         self.photo = photo
 
         self.set_password(password)

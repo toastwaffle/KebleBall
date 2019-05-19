@@ -446,6 +446,14 @@ def relinquish_ticket():
     """Allow a ticket holder to relinquish their ticket."""
     if not login.current_user.has_held_ticket():
         flask.flash("You do not hold a ticket to relinquish.", "error")
+    elif login.current_user.held_ticket.owner == login.current_user:
+        flask.flash(
+            (
+                "You cannot relinquish a ticket you bought. Please contact "
+                '<a href="{0}">the ticketing officer</a> for assistance.'
+            ).format(APP.config["TICKETS_EMAIL_LINK"]),
+            "error",
+        )
     else:
         login.current_user.held_ticket.holder = None
         DB.session.commit()

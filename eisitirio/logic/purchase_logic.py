@@ -21,7 +21,8 @@ APP = app.APP
 DB = db.DB
 
 _TicketInfo = collections.namedtuple(
-    "TicketInfo", ["guest_tickets_available", "total_tickets_available", "ticket_types"]
+    "TicketInfo",
+    ["guest_tickets_available", "total_tickets_available", "ticket_types", "addons"],
 )
 
 
@@ -33,6 +34,8 @@ class TicketInfo(_TicketInfo):
         total_tickets_available: (int) How many tickets the user can buy.
         transaction_limit: (int)
         ticket_types: (list(TicketType, int)) Available ticket types, along with
+            how many of each ticket type can be bought.
+        addons: (list(Addons, int)) Available addons, along with
             how many of each ticket type can be bought.
     """
 
@@ -46,6 +49,7 @@ class TicketInfo(_TicketInfo):
                     ticket_type.to_json_dict(limit)
                     for ticket_type, limit in self.ticket_types
                 ],
+                "addons": [addon.to_json_dict(limit) for addon, limit in self.addons],
             }
         )
 
@@ -139,12 +143,30 @@ def _get_ticket_limit(user, ticket_type, ticket_info):
     return limit
 
 
+def _get_addon_limit(addon):
+    """Get the number of addons that can be bought.
+
+    Args:
+        addon: (eisitirio.helpers.ticket_type.TicketAddon) the addon type.
+    """
+    return max(
+        0,
+        addon.total_limit
+        - models.TicketAddon.query.filter(models.TicketAddon.slug == addon.slug)
+        .filter(
+            models.TicketAddon.cancelled == False
+        )  # pylint: disable=singleton-comparison
+        .count(),
+    )
+
+
 def get_ticket_info(user):
     """Get information about what tickets |user| can purchase online."""
 
     ticket_info = TicketInfo(
         guest_tickets_available(),
         _total_tickets_available(user, datetime.datetime.utcnow()),
+        [],
         [],
     )
 
@@ -154,6 +176,12 @@ def get_ticket_info(user):
 
             if ticket_limit > 0:
                 ticket_info.ticket_types.append((ticket_type, ticket_limit))
+
+    for addon in app.APP.config["ADDONS"]:
+        if addon.can_buy(user):
+            addon_limit = _get_addon_limit(addon)
+            if addon_limit > 0:
+                ticket_info.addons.append((addon, addon_limit))
 
     return ticket_info
 
@@ -216,7 +244,7 @@ def get_group_ticket_info(user):
     return ticket_info
 
 
-def validate_tickets(ticket_info, num_tickets):
+def validate_tickets(ticket_info, num_tickets, addons_selected):
     """Validate the number of tickets selected by the user and the names."""
     flashes = []
 
@@ -260,6 +288,14 @@ def validate_tickets(ticket_info, num_tickets):
     if total_ticket_count == 0:
         flashes.append("You haven't ordered any tickets.")
 
+    for addon, limit in ticket_info.addons:
+        if addons_selected[addon.slug] and total_ticket_count > limit:
+            flashes.append(
+                "We're sorry, there aren't sufficient {0} addons for all your tickets".format(
+                    addon.name
+                )
+            )
+
     return flashes
 
 
@@ -276,7 +312,7 @@ def _to_list(*args):
         return "{0}, or {1}".format(", ".join(args[:-1]), args[-1])
 
 
-def create_tickets(user, ticket_info, num_tickets):
+def create_tickets(user, ticket_info, num_tickets, addons_selected):
     """Create the ticket objects from the user's selection."""
     tickets = [
         models.Ticket(user, ticket_type.slug, ticket_type.price)
@@ -284,7 +320,20 @@ def create_tickets(user, ticket_info, num_tickets):
         for _ in xrange(num_tickets[ticket_type.slug])
     ]
 
-    return tickets
+    addons = []
+
+    for addon, _ in ticket_info.addons:
+        if addons_selected[addon.slug]:
+            addons.extend(
+                models.TicketAddon(addon.slug, addon.price, ticket)
+                for ticket in tickets
+            )
+
+    # First ticket automatically (and irreversibly) assigned to purchaser.
+    if tickets and not user.has_held_ticket():
+        tickets[0].holder = user
+
+    return tickets, addons
 
 
 def check_payment_method(flashes):

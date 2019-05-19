@@ -330,8 +330,8 @@ def check_ticket_mobileapp(key, ticket_id, barcode):
             )
 
             valid = True
-            message = "Permit entry for:\n    {0}".format(
-                ticket.holder.full_name.encode("utf-8")
+            message = "Permit entry for:\n    {0}\nAddons: {1}".format(
+                ticket.holder.full_name.encode("utf-8"), ticket.addons_str
             )
             photo = ticket.holder.photo.full_url
 

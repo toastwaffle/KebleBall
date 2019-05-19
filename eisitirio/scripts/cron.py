@@ -9,7 +9,7 @@ import datetime
 import os
 import sys
 
-
+import flask
 import flask_script as script
 
 # from flask.ext import script
@@ -20,9 +20,11 @@ from eisitirio.database import db
 from eisitirio.database import models
 from eisitirio.database import static
 from eisitirio.helpers import email_manager
-from eisitirio.helpers import statistic_plots
+
+# from eisitirio.helpers import statistic_plots
 from eisitirio.helpers import statistics
 from eisitirio.logic import purchase_logic
+from eisitirio.logic import affiliation_logic
 from eisitirio.scripts import create_qr_codes
 
 APP = app.APP
@@ -204,30 +206,57 @@ def draw_graphs():
 # for user in models.User.query.all():
 
 
+def verify_affiliations_from_list():
+    """After the affiliation list has been updated, verify any unverified users.
+
+    Users are verified if their chosen affiliation matches the affiliation list.
+    """
+    for user in models.User.query.filter(
+        models.User.affiliation_verified == None
+    ).all():  # pylint: disable=singleton-comparison
+        if user.affiliation_list_entry is None:
+            list_entry = models.AffiliationListEntry.get_by_email(user.email)
+            if list_entry is not None:
+                user.affiliation_list_entry = list_entry
+                DB.session.commit()
+            else:
+                continue
+        if affiliation_logic.auto_verify(user):
+            APP.email_manager.send_template(
+                user.email,
+                "Affiliation Verified - Buy Your Tickets Now!",
+                "affiliation_verified.email",
+                name=user.forenames,
+                url=flask.url_for("purchase.purchase_home", _external=True),
+            )
+
+
 def run_5_minutely(now):
     """Run tasks which need to be run every 5 minutes.
 
     Args:
         now: (datetime.datetime) time at which the script was started
     """
-    timestamp_file = os.path.abspath(
-        "./{}_cron_timestamp_5min.txt".format(APP.config["ENVIRONMENT"])
-    )
+    # timestamp_file = os.path.abspath(
+    #     "./{}_cron_timestamp_5min.txt".format(APP.config["ENVIRONMENT"])
+    # )
 
-    if now - get_last_run_time(timestamp_file) < datetime.timedelta(minutes=5):
-        return
+    # if now - get_last_run_time(timestamp_file) < datetime.timedelta(minutes=5):
+    #     return
 
-    set_timestamp(timestamp_file, now)
+    # set_timestamp(timestamp_file, now)
 
-    send_announcements()
+    # send_announcements()
 
-    allocate_waiting()
+    # allocate_waiting()
 
-    cancel_expired_tickets(now)
+    # cancel_expired_tickets(now)
 
-    create_qr_codes.CreateQRCodes.run()
+    # create_qr_codes.CreateQRCodes.run()
 
-    remove_expired_secret_keys(now)
+    # remove_expired_secret_keys(now)
+
+    verify_affiliations_from_list()
 
 
 def run_20_minutely(now):

@@ -11,7 +11,7 @@
                 <div class="small-12 large-5 columns">
                 <li>
                     <h5>Choose Number of Tickets</h5>
-		    <p> All prices include a &pound;1 booking fee.</p>
+		            <p> All prices include a &pound;1 booking fee.</p>
                     <table id="ticket_type_table">
                         <thead>
                             <th>Ticket type</th>
@@ -32,10 +32,29 @@
                     </table>
                 </li>
               </div>
+              {% if ticket_info.addons %}
+              <div class="small-12 large-5 columns">
+                <li>
+                    <h5>Choose Addons</h5>
+                    <ul>
+                        {% for addon, _ in ticket_info.addons %}
+                            <li>
+                                <label for="addon_{{ addon.slug }}" id="addon_label_{{ addon.slug }}">
+                                    <input type="checkbox" name="addon_{{ addon.slug }}" id="addon_{{ addon.slug }}" value="Yes" />
+                                    {{ addon.name }} (&pound;{{ addon.price_pounds }} per ticket)
+                                </label>
+                                <span id="addon_not_enough_{{ addon.slug }}" style="display:none;">Not enough available for all your selected tickets.</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <p>Total cost of addons: <span id="addon_value">&pound;0.00</span></p>
+                </li>
+              </div>
+              {% endif %}
               <div class="small-12 large-7 columns">
                 <li>
                     <h5>Apply voucher code</h5>
-                    <p>If you have been given a discount code, please enter it here. If you do not have a code, leave this field blank. Only one discount code may be used per order</p>
+                    <p>If you have been given a discount code, please enter it here. If you do not have a code, leave this field blank. Only one discount code may be used per order. Note that vouchers do not apply to addons.</p>
                     <div class="row">
                         <div class="columns">
                             <label for="voucher_code">Discount Code:</label>
@@ -121,6 +140,32 @@
 
                 input.attr("max", Math.max(0, limit));
             });
+
+            var addon_value = 0;
+
+            $(ticket_info.addons).each(function(_, addon) {
+                var input = $("#addon_" + addon.slug);
+                var label = $("#addon_label_" + addon.slug);
+                var not_enough = $("#addon_not_enough_" + addon.slug);
+                if (total_tickets_ordered > addon.limit) {
+                    input.attr("disabled", "disabled");
+                    input.attr("checked", false);
+                    label.css("text-decoration", "line-through");
+                    not_enough.show();
+                } else {
+                    input.attr("disabled", null);
+                    label.css("text-decoration", "none");
+                    not_enough.hide();
+                    if (input[0].checked) {
+                        addon_value = addon_value + addon.price;
+                    }
+                }
+            });
+
+            var addon_price_str = addon_value * total_tickets_ordered + "";
+            while (addon_price_str.length < 3) addon_price_str = "0" + addon_price_str;
+
+            $("#addon_value").html("&pound;" + addon_price_str.slice(0, -2) + "." + addon_price_str.slice(-2));
         });
     </script>
     <script type="text/javascript">

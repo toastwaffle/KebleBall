@@ -14,6 +14,7 @@
                     <th>Affiliation</th>
                     <th>Verify</th>
                     <th>Deny</th>
+                    <th>Use List Affiliation</th>
                 </tr>
             </thead>
             <tbody>
@@ -24,6 +25,11 @@
                         <td>{{ user.affiliation.name }}</td>
                         <td><a href="{{ url_for('admin_users.verify_affiliation', user_id=user.object_id) }}" class="button tiny">Verify Affiliation</a></td>
                         <td><a href="{{ url_for('admin_users.deny_affiliation', user_id=user.object_id) }}" class="button tiny">Deny Affiliation</a></td>
+                        <td>
+                            {% if user.affiliation_list_entry %}
+                                <a href="{{ url_for('admin_users.use_list_affiliation', user_id=user.object_id) }}" class="button tiny">Use List Affiliation</a>
+                            {% endif %}
+                        <td>
                     </tr>
                 {% endfor %}
             </tbody>

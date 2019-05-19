@@ -3,6 +3,8 @@
 
 from __future__ import unicode_literals
 
+import csv
+
 import flask
 import sqlalchemy
 
@@ -35,6 +37,20 @@ def verify_affiliation(user):
     )
 
     DB.session.commit()
+
+
+def use_list_affiliation(user):
+    """Copy a user's affiliation from the affiliations list.
+
+    The affiliation selected by the user when they register may not be the
+    affiliation read from the affiliations list. This method forces the user's
+    affiliation to the correct one.
+    """
+    if user.affiliation_list_entry is None:
+        return False
+    user.affiliation = user.affiliation_list_entry.affiliation
+    verify_affiliation(user)
+    return True
 
 
 def deny_affiliation(user):
@@ -70,9 +86,25 @@ def update_affiliation(user, new_college, new_affiliation):
             new_college.name in APP.config["HOST_COLLEGES"]
             or new_affiliation.name == "Contest Winner"
         )
-        and new_affiliation.name not in ["Other", "None", "Graduate/Alumnus"]
+        and new_affiliation.name not in ["Other", "None"]
     ):
         user.affiliation_verified = None
+
+
+def auto_verify(user):
+    if user.affiliation_verified is None and (
+        user.college.name not in APP.config["HOST_COLLEGES"]
+        or user.affiliation.name in ["Other", "None"]
+        or (user.battels is not None and user.affiliation.name == "Student")
+        or (
+            user.affiliation_list_entry is not None
+            and user.affiliation_list_entry.affiliation == user.affiliation
+        )
+    ):
+        user.affiliation_verified = True
+        DB.session.commit()
+        return True
+    return False
 
 
 def maybe_verify_affiliation(user):
@@ -82,14 +114,8 @@ def maybe_verify_affiliation(user):
     otherwise sends an email to the ball ticketing officer to ask them to
     verify it manually
     """
-    if user.affiliation_verified is None and not APP.config["TICKETS_ON_SALE"]:
-        if user.affiliation.name != "Contest Winner" and (
-            user.college.name not in APP.config["HOST_COLLEGES"]
-            or user.affiliation.name in ["Other", "None", "Graduate/Alumnus"]
-            or (user.battels is not None and user.affiliation.name == "Student")
-        ):
-            user.affiliation_verified = True
-            DB.session.commit()
+    if user.affiliation_verified is None:
+        if auto_verify(user):
             return
 
         APP.email_manager.send_template(
@@ -128,3 +154,48 @@ def get_unverified_users():
         )
         .all()
     )
+
+
+def update_affiliation_list(new_list):
+    """Update the affiliation list."""
+    affiliations = {}
+    for affiliation in models.Affiliation.query.all():
+        affiliations[affiliation.name] = affiliation
+
+    old_list_entries = {}
+    for entry in models.AffiliationListEntry.query.all():
+        old_list_entries[entry.email] = entry
+
+    new_list_entries = {}
+    for row in csv.DictReader(
+        new_list.stream, fieldnames=["email", "affiliation", "affiliation_reference"]
+    ):
+        try:
+            affiliation = affiliations[row["affiliation"]]
+        except KeyError:
+            flask.flash(
+                "Unknown affiliation {affiliation} for {email}".format(**row), "error"
+            )
+            DB.session.rollback()
+            return
+
+        # Turn empty strings into None.
+        reference = row["affiliation_reference"] or None
+
+        try:
+            old_entry = old_list_entries[row["email"]]
+            old_entry.affiliation = affiliation
+            old_entry.affiliation_reference = reference
+            new_list_entries[row["email"]] = old_entry
+        except KeyError:
+            entry = models.AffiliationListEntry(row["email"], affiliation, reference)
+            DB.session.add(entry)
+            new_list_entries[row["email"]] = entry
+
+    for email, entry in old_list_entries.iteritems():
+        if email not in new_list_entries:
+            DB.session.delete(entry)
+
+    DB.session.commit()
+
+    flask.flash("Affiliation list updated", "success")

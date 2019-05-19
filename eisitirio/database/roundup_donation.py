@@ -52,7 +52,7 @@ class RoundupDonation(DB.Model):
     def apply_to_ticket(self, ticket):
         # TODO: Make sure that this is correct (it looks like the prices
         # are being represented by an int that is multiplied by 10???)
-        ticket.price = ticket.price + self.base_donation_amt
+        ticket.price_without_addons += self.base_donation_amt
         self.total_amount = self.total_amount + self.base_donation_amt
         ticket.add_note("Roundup donation amt {0}".format(self.base_donation_amt))
         return ticket
