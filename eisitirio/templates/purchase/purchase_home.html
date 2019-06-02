@@ -40,7 +40,7 @@
                         {% for addon, _ in ticket_info.addons %}
                             <li>
                                 <label for="addon_{{ addon.slug }}" id="addon_label_{{ addon.slug }}">
-                                    <input type="checkbox" name="addon_{{ addon.slug }}" id="addon_{{ addon.slug }}" value="Yes" />
+                                    <input type="checkbox" class="addon_checkbox" name="addon_{{ addon.slug }}" id="addon_{{ addon.slug }}" value="Yes" />
                                     {{ addon.name }} (&pound;{{ addon.price_pounds }} per ticket)
                                 </label>
                                 <span id="addon_not_enough_{{ addon.slug }}" style="display:none;">Not enough available for all your selected tickets.</span>
@@ -90,9 +90,7 @@
 
         var ticket_info = {{ ticket_info.to_json()|safe }};
 
-        var num_ticket_inputs = $(".num_ticket_input")
-
-        num_ticket_inputs.on("change", function () {
+        function update_tickets_and_addons() {
             var guest_tickets_ordered = 0;
             var total_tickets_ordered = 0;
             var total_value = 0;
@@ -149,7 +147,7 @@
                 var not_enough = $("#addon_not_enough_" + addon.slug);
                 if (total_tickets_ordered > addon.limit) {
                     input.attr("disabled", "disabled");
-                    input.attr("checked", false);
+                    input[0].checked = false;
                     label.css("text-decoration", "line-through");
                     not_enough.show();
                 } else {
@@ -166,7 +164,10 @@
             while (addon_price_str.length < 3) addon_price_str = "0" + addon_price_str;
 
             $("#addon_value").html("&pound;" + addon_price_str.slice(0, -2) + "." + addon_price_str.slice(-2));
-        });
+        }
+
+        $(".num_ticket_input").on("change", update_tickets_and_addons);
+        $(".addon_checkbox").on("change", update_tickets_and_addons);
     </script>
     <script type="text/javascript">
         var voucher_code = $("#voucher_code");
