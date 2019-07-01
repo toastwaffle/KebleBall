@@ -58,7 +58,6 @@ class PrefillCommand(script.Command):
                 "01234567890",
                 static.COLLEGES[-1],
                 static.AFFILIATIONS[-1],
-                None,
                 photo,
             )
 
