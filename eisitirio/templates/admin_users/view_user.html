@@ -16,6 +16,7 @@
             <p><strong>Phone</strong>: {{ user.phone }}</p>
             <p><strong>College</strong>: {{ user.college.name }}</p>
             <p><strong>Affiliation</strong>: {{ user.affiliation.name }}</p>
+            <p><strong>Alumni Number</strong>: {% if user.alumni_number != None %}{{ user.alumni_number }}{% else %}None{% endif %}</p>
             {% if user.affiliation_list_entry != None %}
                 <p>
                     <strong>Affiliation List Entry</strong>: {{ user.affiliation_list_entry.affiliation.name }}
@@ -23,6 +24,7 @@
                         (ID: {{ user.affiliation_list_entry.affiliation_id }})
                     {% endif %}
                 </p>
+                <p><strong>Affliation Match</strong>: {{ user.affiliation_match }}</p>
             {% endif %}
             {% if user.battels != None %}
                 {% if not user.battels.manual %}

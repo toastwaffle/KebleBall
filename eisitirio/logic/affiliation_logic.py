@@ -91,6 +91,55 @@ def update_affiliation(user, new_college, new_affiliation):
         user.affiliation_verified = None
 
 
+def match_to_affiliation_list(user):
+    from_email = models.AffiliationListEntry.get_by_email(user.email)
+    if from_email is not None:
+        if from_email.user is not None and from_email.user != user:
+            flask.flash(
+                (
+                    "The email address provided is already associated with "
+                    "another alumnus account. Please contact the ticketing "
+                    "officer for assistance."
+                ),
+                "warning",
+            )
+            user.affiliation_list_entry = None
+            user.affiliation_match = None
+        else:
+            user.affiliation_list_entry = from_email
+            if (
+                from_email.affiliation_reference
+                and user.alumni_number
+                and from_email.affiliation_reference == user.alumni_number
+            ):
+                user.affiliation_match = "Email & Alumni Number"
+            else:
+                user.affiliation_match = "Email only"
+    elif user.alumni_number:
+        from_alumni_number = models.AffiliationListEntry.get_by_affiliation_reference(
+            user.alumni_number
+        )
+        if from_alumni_number is not None:
+            if from_alumni_number.user is not None and from_alumni_number.user != user:
+                flask.flash(
+                    (
+                        "The alumni number provided is already associated with "
+                        "another alumnus account. Please contact the ticketing "
+                        "officer for assistance."
+                    ),
+                    "warning",
+                )
+                user.affiliation_list_entry = None
+                user.affiliation_match = None
+            else:
+                user.affiliation_list_entry = from_alumni_number
+                user.affiliation_match = "Alumni Number only"
+    else:
+        user.affiliation_list_entry = None
+        user.affiliation_match = None
+    DB.session.commit()
+
+
 def auto_verify(user):
     if user.affiliation_verified is None and (
         user.college.name not in APP.config["HOST_COLLEGES"]
@@ -115,6 +164,8 @@ def maybe_verify_affiliation(user):
     verify it manually
     """
     if user.affiliation_verified is None:
+        match_to_affiliation_list(user)
+
         if auto_verify(user):
             return
 
@@ -174,13 +225,24 @@ def update_affiliation_list(new_list):
             affiliation = affiliations[row["affiliation"]]
         except KeyError:
             flask.flash(
-                "Unknown affiliation {affiliation} for {email}".format(**row), "error"
+                "Unknown affiliation {affiliation} for {email}/{affiliation_reference}".format(
+                    **row
+                ),
+                "error",
             )
             DB.session.rollback()
             return
 
         # Turn empty strings into None.
+        email = row["email"] or None
         reference = row["affiliation_reference"] or None
+
+        if email is None and reference is None:
+            flask.flash(
+                "List entries must have either an email or a reference", "error"
+            )
+            DB.session.rollback()
+            return
 
         try:
             old_entry = old_list_entries[row["email"]]

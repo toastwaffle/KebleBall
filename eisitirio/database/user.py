@@ -43,6 +43,8 @@ class User(DB.Model):
     phone = DB.Column(DB.Unicode(20), nullable=False)
     phone_verification_code = DB.Column(DB.Unicode(6), nullable=True)
     phone_verified = DB.Column(DB.Boolean, nullable=False, default=False)
+    alumni_number = DB.Column(DB.Unicode(20), nullable=True)
+    affiliation_match = DB.Column(DB.Unicode(20), nullable=True)
     secret_key = DB.Column(DB.Unicode(64), nullable=True)
     secret_key_expiry = DB.Column(DB.DateTime(), nullable=True)
     verified = DB.Column(DB.Boolean, default=False, nullable=False)
@@ -80,16 +82,7 @@ class User(DB.Model):
     photo = DB.relationship("Photo", backref=DB.backref("user", uselist=False))
 
     def __init__(
-        self,
-        email,
-        password,
-        forenames,
-        surname,
-        phone,
-        college,
-        affiliation,
-        affiliation_list_entry,
-        photo,
+        self, email, password, forenames, surname, phone, college, affiliation, photo
     ):
         self.email = email
         self.forenames = forenames
@@ -97,7 +90,6 @@ class User(DB.Model):
         self.phone = phone
         self.college = college
         self.affiliation = affiliation
-        self.affiliation_list_entry = affiliation_list_entry
         self.photo = photo
 
         self.set_password(password)
@@ -292,6 +284,8 @@ class User(DB.Model):
                 "College",
                 "Affiliation",
                 "Battels ID",
+                "Alumni Number",
+                "Alumni Match",
             ]
         )
 
@@ -309,5 +303,7 @@ class User(DB.Model):
                 self.college.name,
                 self.affiliation.name,
                 self.battels.battels_id if self.battels is not None else "N/A",
+                self.alumni_number or "None",
+                self.affiliation_match or "N/A",
             ]
         )

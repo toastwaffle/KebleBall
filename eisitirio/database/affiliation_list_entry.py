@@ -16,8 +16,8 @@ class AffiliationListEntry(DB.Model):
 
     __tablename__ = "affiliation_list_entry"
 
-    email = DB.Column(DB.Unicode(120), unique=True, nullable=False)
-    affiliation_reference = DB.Column(DB.Unicode(30), nullable=True)
+    email = DB.Column(DB.Unicode(120), unique=True, nullable=True)
+    affiliation_reference = DB.Column(DB.Unicode(30), unique=True, nullable=True)
 
     affiliation_id = DB.Column(
         DB.Integer, DB.ForeignKey("affiliation.object_id"), nullable=False

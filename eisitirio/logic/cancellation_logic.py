@@ -37,10 +37,34 @@ def cancel_tickets(tickets, quiet=False):
 
     cancelled = []
 
+    if login.current_user.held_ticket and login.current_user.held_ticket in tickets:
+        remaining_claimed_tickets = []
+        remaining_unclaimed_tickets = []
+        for ticket in login.current_user.active_tickets.all():
+            if ticket in tickets:
+                continue
+            if ticket.holder is not None:
+                remaining_claimed_tickets.append(ticket)
+            else:
+                remaining_unclaimed_tickets.append(ticket)
+        if remaining_claimed_tickets and not remaining_unclaimed_tickets:
+            flask.flash(
+                (
+                    "You cannot cancel your own ticket without also cancelling "
+                    'your guest tickets. Contact <a href="{0}">the ticketing '
+                    "officer</a> for assistance."
+                ).format(APP.config["TICKETS_EMAIL_LINK"]),
+                "error",
+            )
+            return []
+
     for ticket in tickets:
         if not ticket.can_be_cancelled():
             continue
         if not ticket.paid or ticket.payment_method == "Free":
+            if ticket.holder == login.current_user and remaining_unclaimed_tickets:
+                remaining_unclaimed_tickets[0].holder = login.current_user
+                remaining_unclaimed_tickets[0].claims_made += 1
             ticket.cancelled = True
             ticket.holder = None
             for addon in ticket.addons.all():
@@ -90,7 +114,11 @@ def cancel_tickets(tickets, quiet=False):
             cancelled.extend(tickets)
 
             for ticket in tickets:
+                if ticket.holder == login.current_user and remaining_unclaimed_tickets:
+                    remaining_unclaimed_tickets[0].holder = login.current_user
+                    remaining_unclaimed_tickets[0].claims_made += 1
                 ticket.cancelled = True
+                ticket.holder = None
 
             if refund_transaction.postage:
                 refund_transaction.postage.cancelled = True
@@ -120,7 +148,7 @@ def cancel_tickets(tickets, quiet=False):
             (
                 "None of your tickets could be automatically refunded, and so "
                 "none were cancelled.  This might be due to "
-                "them having been payed for by card. If they have not been purchased by card you can try again "
+                "them having been paid for by card. If they have not been purchased by card you can try again "
                 "later, but if this problem continues to occur, you "
                 'should contact <a href="{0}">the ticketing officer</a>'
             ).format(APP.config["TICKETS_EMAIL_LINK"]),

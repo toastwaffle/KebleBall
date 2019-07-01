@@ -197,6 +197,7 @@ class Ticket(DB.Model):
                 "Owner's Name",
                 "Owner's Email",
                 "Owner's Affiliation Reference",
+                "Owner's Affiliation Match",
             ]
         )
 
@@ -224,5 +225,6 @@ class Ticket(DB.Model):
                 self.owner.full_name.encode("utf-8"),
                 self.owner.email,
                 self.owner_affiliation_reference,
+                self.owner.affiliation_match or "N/A",
             ]
         )

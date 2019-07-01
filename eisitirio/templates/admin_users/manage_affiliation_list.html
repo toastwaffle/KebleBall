@@ -17,15 +17,29 @@
             <input type="submit" value="Update" class="button expanded large" />
         </form>
         <h3>List entries</h3>
-        <ul>
-            {% for entry in list %}
-                <li>
-                    {{ entry.email }}: {{ entry.affiliation.name }}
-                    {% if entry.affiliation_reference != None %}
-                        (Reference: {{ entry.affiliation_reference }})
-                    {% endif %}
-                </li>
-            {% endfor %}
-        </ul>
+        <table>
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Reference</th>
+                    <th>Affiliation</th>
+                    <th>Matched to</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in list %}
+                    <tr>
+                        <td>{{ entry.email or "None" }}</td>
+                        <td>{{ entry.affiliation_reference or "None" }}</td>
+                        <td>{{ entry.affiliation.name }}</td>
+                        <td>
+                            {% if entry.user != None %}
+                                <a href="{{ url_for('admin_users.view_user', user_id=entry.user.object_id) }}">{{ entry.user.full_name }}</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </section>
 {% endblock %}

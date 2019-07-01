@@ -332,6 +332,7 @@ def create_tickets(user, ticket_info, num_tickets, addons_selected):
     # First ticket automatically (and irreversibly) assigned to purchaser.
     if tickets and not user.has_held_ticket():
         tickets[0].holder = user
+        tickets[0].claims_made += 1
 
     return tickets, addons
 

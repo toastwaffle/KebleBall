@@ -130,6 +130,22 @@
                             </select>
                         </div>
                     </div>
+                    <div class="row" id="alumni-number-row" style="display:none;">
+                        <div class="large-12 columns">
+                            <label for="register-alumni-number">Alumni Number (8-XXXXXXXX)</label>
+                            <input
+                                type="text"
+                                name="alumni-number"
+                                id="register-alumni-number"
+                                pattern="(8-\d{8})?"
+                                {% if form['alumni-number'] %}
+                                    value="{{ form['alumni-number'] }}"
+                                {% else %}
+                                    value="8-"
+                                {% endif %}
+                                />
+                        </div>
+                    </div>
                     {% if template_config['REQUIRE_USER_PHOTO'] %}
                         <div class="row">
                             <div class="large-12 columns">
@@ -160,4 +176,19 @@
             </section>
         </div>
     </section>
+{% endblock %}
+
+{% block javascripts %}
+    <script type="text/javascript">
+        var affiliationSelect = $("#register-affiliation");
+        var alumniNumberRow = $("#alumni-number-row");
+        var alumniAffiliations = {{ alumni_affiliation_ids|safe }};
+        affiliationSelect.on('change', function() {
+            if (alumniAffiliations.includes(affiliationSelect.val())) {
+                alumniNumberRow.slideDown();
+            } else {
+                alumniNumberRow.slideUp();
+            }
+        });
+    </script>
 {% endblock %}

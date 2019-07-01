@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 
 import datetime
+import re
 
 import flask_login as login
 
@@ -102,6 +103,20 @@ def update_profile():
     ):
         flashes.append("Please select an affiliation")
 
+    alumni_affiliation_ids = [
+        str(affiliation.object_id)
+        for affiliation in models.Affiliation.query.all()
+        if "Alumnus" in affiliation.name
+    ]
+
+    if flask.request.form["affiliation"] in alumni_affiliation_ids and (
+        "alumni-number" not in flask.request.form
+        or not re.match(r"^8-\d{8}$", flask.request.form["alumni-number"])
+    ):
+        flashes.append(
+            "Please enter a valid alumni number, starting with '8-' and with 8 digits (e.g. 8-12345678)"
+        )
+
     if flashes:
         flask.flash(
             (
@@ -125,11 +140,15 @@ def update_profile():
         login.current_user.phone_verified = False
         login.current_user.phone = flask.request.form["phone"]
 
+    login.current_user.alumni_number = flask.request.form["alumni-number"]
+
     affiliation_logic.update_affiliation(
         login.current_user,
         models.College.get_by_id(flask.request.form["college"]),
         models.Affiliation.get_by_id(flask.request.form["affiliation"]),
     )
+
+    affiliation_logic.match_to_affiliation_list(login.current_user)
 
     DB.session.commit()
 
@@ -446,11 +465,13 @@ def relinquish_ticket():
     """Allow a ticket holder to relinquish their ticket."""
     if not login.current_user.has_held_ticket():
         flask.flash("You do not hold a ticket to relinquish.", "error")
-    elif login.current_user.held_ticket.owner == login.current_user:
+    elif not login.current_user.held_ticket.can_be_reclaimed():
         flask.flash(
             (
-                "You cannot relinquish a ticket you bought. Please contact "
-                '<a href="{0}">the ticketing officer</a> for assistance.'
+                "You cannot relinquish this ticket, either because you bought "
+                "it, or because this action is not currently enabled. Please "
+                'contact <a href="{0}">the ticketing officer</a> for '
+                "assistance."
             ).format(APP.config["TICKETS_EMAIL_LINK"]),
             "error",
         )

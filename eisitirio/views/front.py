@@ -4,6 +4,8 @@
 from __future__ import unicode_literals
 
 import datetime
+import json
+import re
 
 import flask_login as login
 
@@ -29,10 +31,19 @@ def home():
 
     Contains forms for registering and logging in.
     """
+    affiliations = models.Affiliation.query.all()
+    alumni_affiliation_ids = json.dumps(
+        [
+            str(affiliation.object_id)
+            for affiliation in affiliations
+            if "Alumnus" in affiliation.name
+        ]
+    )
     return flask.render_template(
         "front/home.html",
         colleges=models.College.query.all(),
-        affiliations=models.Affiliation.query.all(),
+        affiliations=affiliations,
+        alumni_affiliation_ids=alumni_affiliation_ids,
         form={},
     )
 
@@ -94,6 +105,14 @@ def register():
     if flask.request.method != "POST":
         return flask.redirect(flask.url_for("router"))
 
+    affiliations = models.Affiliation.query.all()
+    alumni_affiliation_ids = [
+        str(affiliation.object_id)
+        for affiliation in affiliations
+        if "Alumnus" in affiliation.name
+    ]
+    alumni_affiliation_ids_json = json.dumps(alumni_affiliation_ids)
+
     flashes = []
 
     if models.User.get_by_email(flask.request.form["email"]) is not None:
@@ -140,6 +159,14 @@ def register():
     ):
         flashes.append("Please select an affiliation")
 
+    if flask.request.form["affiliation"] in alumni_affiliation_ids and (
+        "alumni-number" not in flask.request.form
+        or not re.match(r"^8-\d{8}$", flask.request.form["alumni-number"])
+    ):
+        flashes.append(
+            "Please enter a valid alumni number, starting with '8-' and with 8 digits (e.g. 8-12345678)"
+        )
+
     if APP.config["REQUIRE_USER_PHOTO"] and (
         "photo" not in flask.request.files
         or flask.request.files["photo"].filename == ""
@@ -164,7 +191,8 @@ def register():
             "front/home.html",
             form=flask.request.form,
             colleges=models.College.query.all(),
-            affiliations=models.Affiliation.query.all(),
+            affiliations=affiliations,
+            alumni_affiliation_ids=alumni_affiliation_ids_json,
         )
 
     if APP.config["REQUIRE_USER_PHOTO"]:
@@ -183,9 +211,11 @@ def register():
         flask.request.form["phone"],
         models.College.get_by_id(flask.request.form["college"]),
         models.Affiliation.get_by_id(flask.request.form["affiliation"]),
-        models.AffiliationListEntry.get_by_email(flask.request.form["email"]),
         photo,
     )
+
+    if flask.request.form["affiliation"] in alumni_affiliation_ids:
+        user.alumni_number = flask.request.form["alumni-number"]
 
     DB.session.add(user)
     DB.session.commit()
