@@ -143,6 +143,7 @@
                                 {% else %}
                                     value="8-"
                                 {% endif %}
+                                disabled
                                 />
                         </div>
                     </div>
@@ -182,12 +183,15 @@
     <script type="text/javascript">
         var affiliationSelect = $("#register-affiliation");
         var alumniNumberRow = $("#alumni-number-row");
+        var alumniNumberField = $("#register-alumni-number");
         var alumniAffiliations = {{ alumni_affiliation_ids|safe }};
         affiliationSelect.on('change', function() {
             if (alumniAffiliations.includes(affiliationSelect.val())) {
                 alumniNumberRow.slideDown();
+                alumniNumberField.prop('disabled', false);
             } else {
                 alumniNumberRow.slideUp();
+                alumniNumberField.prop('disabled', true);
             }
         });
     </script>
