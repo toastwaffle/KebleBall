@@ -16,6 +16,7 @@ import datetime
 
 import flask
 
+
 class Until(object):
     """Config helper class to handle config values changing at set times."""
 
@@ -55,14 +56,15 @@ def parse_until(value, now=None):
     else:
         return value
 
+
 def augment_config(app):
     """Set up the app's config object to automatically parse Until objects."""
     old_getitem = app.config.__getitem__
 
     app.config.__class__ = type(
-        b'Config',
+        b"Config",
         (flask.config.Config,),
-        {'__getitem__': (lambda self, k: parse_until(old_getitem(k)))}
+        {"__getitem__": (lambda self, k: parse_until(old_getitem(k)))},
     )
 
     old_get = app.config.get

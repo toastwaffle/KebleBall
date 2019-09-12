@@ -6,14 +6,7 @@ from __future__ import unicode_literals
 import collections
 
 _PostageOption = collections.namedtuple(
-    "PostageOption",
-    [
-        "name",
-        "slug",
-        "price",
-        "description",
-        "needs_address"
-    ]
+    "PostageOption", ["name", "slug", "price", "description", "needs_address"]
 )
 
 
@@ -32,5 +25,5 @@ class PostageOption(_PostageOption):
     @property
     def price_pounds(self):
         """Return the price in pounds.pence format."""
-        price = '{0:03d}'.format(self.price)
-        return price[:-2] + '.' + price[-2:]
+        price = "{0:03d}".format(self.price)
+        return price[:-2] + "." + price[-2:]

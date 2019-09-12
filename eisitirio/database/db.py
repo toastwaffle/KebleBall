@@ -4,7 +4,8 @@
 from __future__ import unicode_literals
 
 import flask_sqlalchemy
-#from flask.ext import sqlalchemy as flask_sqlalchemy
+
+# from flask.ext import sqlalchemy as flask_sqlalchemy
 from sqlalchemy.dialects import mysql
 from sqlalchemy.ext import declarative
 import sqlalchemy
@@ -19,20 +20,21 @@ DB = flask_sqlalchemy.SQLAlchemy(app.APP)
 # be used once v3.0 is released as stable.
 DB.Model = declarative.declarative_base(
     cls=custom_model.CustomModel,
-    name='Model'.encode('us-ascii'),
+    name="Model".encode("us-ascii"),
     metadata=None,
-    metaclass=custom_model.CustomModelMeta
+    metaclass=custom_model.CustomModelMeta,
 )
-DB.Model.query = flask_sqlalchemy._QueryProperty(DB) # pylint: disable=protected-access
+DB.Model.query = flask_sqlalchemy._QueryProperty(DB)  # pylint: disable=protected-access
+
 
 @sqlalchemy.event.listens_for(sqlalchemy.Table, "column_reflect")
 def column_reflect(_, unused, column_info):
     """Change the presented types of columns to avoid confusing alembic."""
-    if isinstance(column_info['type'], mysql.TINYINT):
-        column_info['type'] = sqlalchemy.Boolean()
+    if isinstance(column_info["type"], mysql.TINYINT):
+        column_info["type"] = sqlalchemy.Boolean()
 
-    if isinstance(column_info['type'], mysql.MEDIUMTEXT):
-        column_info['type'] = sqlalchemy.UnicodeText(length=65536)
+    if isinstance(column_info["type"], mysql.MEDIUMTEXT):
+        column_info["type"] = sqlalchemy.UnicodeText(length=65536)
 
-    if isinstance(column_info['type'], mysql.TEXT):
-        column_info['type'] = sqlalchemy.UnicodeText(length=256)
+    if isinstance(column_info["type"], mysql.TEXT):
+        column_info["type"] = sqlalchemy.UnicodeText(length=256)

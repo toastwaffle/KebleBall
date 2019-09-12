@@ -15,111 +15,61 @@ from eisitirio.helpers import util
 APP = app.APP
 DB = db.DB
 
+
 class Ticket(DB.Model):
     """Model for tickets."""
-    __tablename__ = 'ticket'
 
-    ticket_type = DB.Column(
-        DB.Unicode(50),
-        nullable=False
-    )
+    __tablename__ = "ticket"
 
-    paid = DB.Column(
-        DB.Boolean(),
-        default=False,
-        nullable=False
-    )
-    entered = DB.Column(
-        DB.Boolean(),
-        default=False,
-        nullable=False
-    )
-    cancelled = DB.Column(
-        DB.Boolean(),
-        default=False,
-        nullable=False
-    )
+    ticket_type = DB.Column(DB.Unicode(50), nullable=False)
 
-    price_ = DB.Column(
-        DB.Integer(),
-        nullable=False
-    )
-    note = DB.Column(
-        DB.UnicodeText(),
-        nullable=True
-    )
-    expires = DB.Column(
-        DB.DateTime(),
-        nullable=True
-    )
-    barcode = DB.Column(
-        DB.Unicode(20),
-        unique=True,
-        nullable=True
-    )
+    paid = DB.Column(DB.Boolean(), default=False, nullable=False)
+    entered = DB.Column(DB.Boolean(), default=False, nullable=False)
+    cancelled = DB.Column(DB.Boolean(), default=False, nullable=False)
+
+    price_ = DB.Column(DB.Integer(), nullable=False)
+    note = DB.Column(DB.UnicodeText(), nullable=True)
+    expires = DB.Column(DB.DateTime(), nullable=True)
+    barcode = DB.Column(DB.Unicode(20), unique=True, nullable=True)
     claim_code = DB.Column(
-        DB.Unicode(17), # 3 groups of 5 digits separated by dashes
-        nullable=True
+        DB.Unicode(17), nullable=True  # 3 groups of 5 digits separated by dashes
     )
-    claims_made = DB.Column(
-        DB.Integer,
-        nullable=False,
-        default=0
-    )
-    owner_id = DB.Column(
-        DB.Integer,
-        DB.ForeignKey('user.object_id'),
-        nullable=False
-    )
+    claims_made = DB.Column(DB.Integer, nullable=False, default=0)
+    owner_id = DB.Column(DB.Integer, DB.ForeignKey("user.object_id"), nullable=False)
     owner = DB.relationship(
-        'User',
-        backref=DB.backref(
-            'tickets',
-            lazy='dynamic',
-            order_by=b'Ticket.cancelled'
-        ),
-        foreign_keys=[owner_id]
+        "User",
+        backref=DB.backref("tickets", lazy="dynamic", order_by=b"Ticket.cancelled"),
+        foreign_keys=[owner_id],
     )
 
-    holder_id = DB.Column(
-        DB.Integer,
-        DB.ForeignKey('user.object_id'),
-        nullable=True
-    )
+    holder_id = DB.Column(DB.Integer, DB.ForeignKey("user.object_id"), nullable=True)
     holder = DB.relationship(
-        'User',
-        backref=DB.backref(
-            'held_ticket',
-            uselist=False
-        ),
-        foreign_keys=[holder_id]
+        "User",
+        backref=DB.backref("held_ticket", uselist=False),
+        foreign_keys=[holder_id],
     )
 
     def __init__(self, owner, ticket_type, price):
         self.owner = owner
         self.ticket_type = ticket_type
-        self.price = price
+        self.price_without_addons = price
 
-        self.expires = (datetime.datetime.utcnow() +
-                        APP.config['TICKET_EXPIRY_TIME'])
+        self.expires = datetime.datetime.utcnow() + APP.config["TICKET_EXPIRY_TIME"]
 
-        self.claim_code = '-'.join(
-            util.generate_key(5, string.digits)
-            for _ in xrange(3)
-        ).decode('utf-8')
+        self.claim_code = "-".join(
+            util.generate_key(5, string.digits) for _ in xrange(3)
+        ).decode("utf-8")
 
     def __repr__(self):
-        return '<Ticket {0} owned by {1} ({2})>'.format(
-            self.object_id,
-            self.owner.full_name,
-            self.owner.object_id
+        return "<Ticket {0} owned by {1} ({2})>".format(
+            self.object_id, self.owner.full_name, self.owner.object_id
         )
 
     @property
     def price_pounds(self):
         """Get the price of this ticket as a string of pounds and pence."""
-        price = '{0:03d}'.format(self.price)
-        return price[:-2] + '.' + price[-2:]
+        price = "{0:03d}".format(self.price)
+        return price[:-2] + "." + price[-2:]
 
     @property
     def transaction(self):
@@ -138,47 +88,54 @@ class Ticket(DB.Model):
         if transaction:
             return transaction.payment_method
         else:
-            return 'Unknown Payment Method'
-
-    @property
-    def price(self):
-        """Get the price of the ticket."""
-        return self.price_
+            return "Unknown Payment Method"
 
     @property
     def status(self):
         """Get the status of this ticket."""
         if self.cancelled:
-            return 'Cancelled.'
+            return "Cancelled."
         elif not self.paid:
-            return 'Awaiting payment. Expires {0}.'.format(
-                self.expires.strftime('%H:%M %d/%m/%Y')
+            return "Awaiting payment. Expires {0}.".format(
+                self.expires.strftime("%H:%M %d/%m/%Y")
             )
         elif self.entered:
-            return 'Used for entry.'
+            return "Used for entry."
         elif self.collected and self.holder:
-            return 'Ticket Sent to {0}.'.format(self.holder.full_name)
+            return "Ticket Sent to {0}.".format(self.holder.full_name)
         elif self.collected:
-            return 'Collected as {0}.'.format(self.barcode)
+            return "Collected as {0}.".format(self.barcode)
         elif self.holder is None:
-            return 'Awaiting ticket holder.'
+            return "Awaiting ticket holder."
         elif not self.holder.photo.verified:
-            return 'Awaiting verification of holder photo.'
+            return "Awaiting verification of holder photo."
         else:
-            return 'Held by {0}.'.format(self.holder.full_name)
+            return "Held by {0}.".format(self.holder.full_name)
 
-    @price.setter
-    def price(self, value):
+    @property
+    def price_without_addons(self):
+        """Get the price of the ticket."""
+        return self.price_
+
+    @property
+    def price(self):
+        """Get the price of the ticket including addons."""
+        return self.price_without_addons + sum(
+            addon.price for addon in self.addons.all()
+        )
+
+    @price_without_addons.setter
+    def price_without_addons(self, value):
         """Set the price of the ticket."""
         self.price_ = max(value, 0)
 
-        if self.price_ == 0:
+        if self.price == 0:
             self.mark_as_paid()
 
     @hybrid.hybrid_property
     def collected(self):
         """Has this ticket been assigned a barcode."""
-        return self.barcode != None # pylint: disable=singleton-comparison
+        return self.barcode != None  # pylint: disable=singleton-comparison
 
     def mark_as_paid(self):
         """Mark the ticket as paid, and clear any expiry."""
@@ -187,55 +144,87 @@ class Ticket(DB.Model):
 
     def add_note(self, note):
         """Add a note to the ticket."""
-        if not note.endswith('\n'):
-            note = note + '\n'
+        if not note.endswith("\n"):
+            note = note + "\n"
 
         if self.note is None:
             self.note = note
         else:
             self.note = self.note + note
 
+    @property
+    def owner_affiliation_reference(self):
+        try:
+            return self.owner.affiliation_list_entry.affiliation_reference or None
+        except AttributeError:
+            return "N/A"
+
+    @property
+    def addons_str(self):
+        addons = self.addons.all()
+        if not addons:
+            return "None"
+        return ", ".join(
+            sorted(APP.config["ADDONS_BY_SLUG"][addon.slug].name for addon in addons)
+        )
+
     @staticmethod
     def count():
         """How many tickets have been sold."""
         # TODO
-        return Ticket.query.filter(Ticket.cancelled == False).count() # pylint: disable=singleton-comparison
+        return Ticket.query.filter(
+            Ticket.cancelled == False
+        ).count()  # pylint: disable=singleton-comparison
 
     @staticmethod
     def write_csv_header(csv_writer):
         """Write the header of a CSV export file."""
-        csv_writer.writerow([
-            'Ticket ID',
-            'Ticket Type',
-            'Paid',
-            'Collected',
-            'Entered',
-            'Cancelled',
-            'Price (Pounds)',
-            'Holder\'s Name',
-            'Notes',
-            'Expires',
-            'Barcode',
-            'Owner\' User ID',
-            'Owner\'s Name',
-        ])
+        csv_writer.writerow(
+            [
+                "Ticket ID",
+                "Ticket Type",
+                "Addons",
+                "Paid",
+                "Collected",
+                "Entered",
+                "Cancelled",
+                "Price (Pounds)",
+                "Holder's Name",
+                "Notes",
+                "Expires",
+                "Barcode",
+                "Owner' User ID",
+                "Owner's Name",
+                "Owner's Email",
+                "Owner's Affiliation Reference",
+                "Owner's Affiliation Match",
+            ]
+        )
 
     def write_csv_row(self, csv_writer):
         """Write this object as a row in a CSV export file."""
-        csv_writer.writerow([
-            self.object_id,
-            self.ticket_type,
-            'Yes' if self.paid else 'No',
-            'Yes' if self.collected else 'No',
-            'Yes' if self.entered else 'No',
-            'Yes' if self.cancelled else 'No',
-            self.price_pounds,
-            self.holder.full_name.encode('utf-8') if self.holder is not None else 'N/A',
-            self.note,
-            self.expires.strftime(
-                '%Y-%m-%d %H:%M:%S'
-            ) if self.expires is not None else 'N/A',
-            self.barcode if self.barcode is not None else 'N/A',
-            self.owner_id,
-            self.owner.full_name.encode('utf-8'),
-        ])
+        csv_writer.writerow(
+            [
+                self.object_id,
+                self.ticket_type,
+                self.addons_str,
+                "Yes" if self.paid else "No",
+                "Yes" if self.collected else "No",
+                "Yes" if self.entered else "No",
+                "Yes" if self.cancelled else "No",
+                self.price_pounds,
+                self.holder.full_name.encode("utf-8")
+                if self.holder is not None
+                else "N/A",
+                self.note,
+                self.expires.strftime("%Y-%m-%d %H:%M:%S")
+                if self.expires is not None
+                else "N/A",
+                self.barcode if self.barcode is not None else "N/A",
+                self.owner_id,
+                self.owner.full_name.encode("utf-8"),
+                self.owner.email,
+                self.owner_affiliation_reference,
+                self.owner.affiliation_match or "N/A",
+            ]
+        )

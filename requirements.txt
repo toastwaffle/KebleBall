@@ -41,7 +41,7 @@ markupsafe==0.23          # via jinja2, mako
 matplotlib==1.5.1
 mccabe==0.6.1             # via pylint
 misaka==2.1.0             # via flask-misaka
-mysql-python==1.2.5
+mysqlclient
 newrelic==2.64.0.48
 numpy==1.11.1             # via matplotlib
 pillow==3.3.0

@@ -5,26 +5,32 @@
 
 {% block content %}
     <section id="terms" class="columns">
-        <p>Last Updated November 19th 2017</p>
+        <p>Last Updated 8th September 2019</p>
 
-        {% if template_config['REQUIRE_USER_PHOTOS'] %}
+<!--
+        {% if template_config['REQUIRE_USER_PHOTO'] %}
             <h3>Use of Images</h3>
 
             <p>By registering with the {{ template_config['BALL_NAME'] }} Ticketing System, and uploading a photo of yourself, you grant {{ template_config['BALL_NAME'] }} permission to use the uploaded image on the night of the ball. Your image will be deleted after the ball. If you have any queries regarding the use of your image, please email <a href="{{ template_config['TICKETS_EMAIL_LINK'] }}">the ticketing officer</a>.</p>
         {% endif %}
+-->
+	
+	<br>	
 
         <h3>Ticket Terms &amp; Conditions</h3>
 
         <p>Tickets for {{ template_config['BALL_NAME'] }} are subject to the following terms and conditions. By confirming, reserving, booking, or purchasing tickets for the ball, you agree to the following:</p>
 
         <ol>
-            <li>No ticket refunds will be processed after 23:59:59 Tuesday May 1st 2018</li>
+	    <li>Tickets are refundable before 21st April but will incur an admin fee of &pound;10 per ticket.</li>
+	    <li>Ticket refunds after 23:59:59 on April 21st will incur an admin fee of &pound;20 per ticket.</li>
+            <li>No tickets will be refunded after 23:59:59 on May 1st 2020</li>
             <li>You and any guests you invite are over 18 years of age on or before {{ template_config['START_TIME'].strftime('%-d') }}{{ get_ord(template_config['START_TIME']) }} {{ template_config['START_TIME'].strftime('%B %Y') }}.</li>
             <li>Ball tickets must not be sold or transferred. Any ticket found to have been resold will be deemed void, and no refund will be given.</li>
             <li>It is forbidden for any user to register multiple accounts for the purposes of evading limits on the number of tickets per person. Any person found to be doing so will have all their tickets deemed void, and no refund will be given.</li>
             <li>{{ template_config['BALL_NAME'] }} reserves the right to cancel and refund any ticket at any time before the ball.</li>
-            <li>All guests must register on the {{ template_config['BALL_NAME'] }} ticketing system and have a ticket attached to their account. Tickets which are not attached to a guest's account will not be able to be collected.</li>
-            <li>The guest account to which a ticket is attached may be changed at most {{ template_config['MAX_TICKET_CLAIMS'] - 1 }} time{{ get_plural(template_config['MAX_TICKET_CLAIMS'] - 1) }}. Any further changes will incur an administration fee.</li>
+            <li>All guests must register on the {{ template_config['BALL_NAME'] }} ticketing system and have a ticket attached to their account. Tickets which are not attached to a guest's account will not count as valid tickets.</li>
+            <li>The guest account to which a ticket is attached may not be changed, your ticket is non-transferable. Any cancellations will incur an administration fee.</li>
             <li>{{ template_config['BALL_NAME'] }} Committee reserves the right to refuse admittance, with no refund of ticket, to any guest who they believe is intoxicated or under the influence of drugs.</li>
             <li>You are obliged to wear the given security ID at all times and carry with you valid photo ID in order to comply with security checks at the entrance and during the event. Failure to do so may result in your expulsion from the premises, with no refund of your ticket.</li>
             <li>{{ template_config['TITLE'] }} will operate a strict no re-admittance policy. Any guest who leaves the Ball after having been admitted, will have their security ID removed and will not be allowed to re-enter under any circumstances whatsoever.</li>
@@ -32,8 +38,8 @@
             <li>Any person whose behaviour is judged to be unruly or offensive by {{ template_config['BALL_NAME'] }} Committee will be expelled from the Ball immediately, will not be allowed to re-enter and will not be given a refund.</li>
             <li>The purchaser of tickets will be responsible for their own behaviour and the behaviour of any guests that they bring into the ball.</li>
             <li>Any attendees of {{ template_config['TITLE'] }} who are found to be aiding non-ticket holders in an attempt to gain entry, will be immediately expelled from the ball, with no refund of their ticket.</li>
-            <li>You agree to follow the instructions of {{ template_config['BALL_NAME'] }} Committee throughout the ball and in the unfortunate event of an emergency, you will comply with the health and safety procedures which the {{ template_config['BALL_NAME'] }} Committee has in place.</li>
-            <li>Neither {{ template_config['BALL_NAME'] }} Committee nor {{ template_config['COLLEGE'] }} College are liable for any loss, damage or injuries sustained at the ball.</li>
+            <li>You agree to follow the instructions of {{ template_config['BALL_NAME'] }} Committee throughout the Ball.</li>
+            <li>Neither {{ template_config['BALL_NAME'] }} Committee nor {{ template_config['COLLEGE'] }} College are liable for any loss, damage or injuries sustained at the ball, save for any personal injury or death due to negligence of the Keble Ball Committee or Keble College.</li>
             <li>{{ template_config['BALL_NAME'] }} Committee reserves the right to amend the programme for the event at any point.</li>
             <li>The battels payment process is not reversible after the end of 8th week in the term to which the payment was charged. Any tickets paid for by battels which are cancelled after the end of 8th week in the term to which the payment was charged will still be charged to battels, and a refund will only be applied to battels for the current term.</li>
             <li>Gates will close on the night at {{ template_config['GATES_CLOSE'].strftime('%I%p')|lower }}. After this hour no one will be admitted to the ball, regardless of whether they have a ticket or not.</li>
@@ -41,10 +47,22 @@
             <li>These terms and conditions are subject to change without notice.</li>
         </ol>
 
-        <h3>Data Protection</h3>
+	<br>	
 
-        <p>By registering with the {{ template_config['BALL_NAME'] }} Ticketing System, you agree:</p>
+        <h3>Privacy Notices and Records of Processing Activities (ROPA)</h3>
 
+	<p><b>A summary of what these notices explain:</b></p>
+
+	<p>Keble Ball is committed to protecting the privacy and security of personal data.</p>
+
+	<p>These notices explain what personal data Keble Ball holds about you, how we use it internally, how we share it, how long we keep it and what your legal rights are in relation to it.</p>
+
+	<p>For the parts of your personal data that you supply to us, these notices also explain the basis on which you are required or requested to provide the information. For the parts of your personal data that we generate about you, or that we receive from others, they explain the source of the data.</p>
+
+	<a href="{{ url_for('static', filename='documents/Privacy-Notice-2020.pdf') }}">Privacy Notices</a>
+	<br>
+	<a href="{{ url_for('static', filename='documents/Keble-College-Ball-2020-GDPR-ROPA.pdf') }}">ROPA</a>
+<!--
         <ol>
             <li>
                 To the necessary processing of data in order for the performance of a contract to which you, the data subject, are a party.
@@ -69,5 +87,8 @@
         </ol>
 
         <p>The terms "data controller", "data subject", "personal data", "processing" are interpreted under the definitions given in Section 1 of the Data Protection Act 1998</p>
-    </section>
+
+-->    
+
+</section>
 {% endblock %}

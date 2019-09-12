@@ -1,0 +1,45 @@
+<!-- admin_users/manage_affiliation_list.html -->
+{% extends 'layout.html' %}
+
+{% block title %}Manage Affiliation List{% endblock %}
+
+{% block content %}
+    <section id="manage_affiliation_list" class="columns">
+        <h3>Update Affiliation list</h3>
+        <p>
+            This tool entirely replaces the existing affiliation list, if any.
+            Users' chosen affiliations (verified or not) will not be updated.
+            A scheduled task will automatically verify users' chosen
+            affiliations against the new list.
+        </p>
+        <form action="{{ url_for('admin_users.update_affiliation_list') }}" method="post" enctype="multipart/form-data">
+            <input type="file" name="affiliation_list" accept="csv" required="required" />
+            <input type="submit" value="Update" class="button expanded large" />
+        </form>
+        <h3>List entries</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Reference</th>
+                    <th>Affiliation</th>
+                    <th>Matched to</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in list %}
+                    <tr>
+                        <td>{{ entry.email or "None" }}</td>
+                        <td>{{ entry.affiliation_reference or "None" }}</td>
+                        <td>{{ entry.affiliation.name }}</td>
+                        <td>
+                            {% if entry.user != None %}
+                                <a href="{{ url_for('admin_users.view_user', user_id=entry.user.object_id) }}">{{ entry.user.full_name }}</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+{% endblock %}

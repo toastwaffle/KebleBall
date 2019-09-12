@@ -19,6 +19,7 @@ from __future__ import unicode_literals
 from eisitirio.database.admin_fee import AdminFee
 from eisitirio.database.admin_fee_transaction_item import AdminFeeTransactionItem
 from eisitirio.database.affiliation import Affiliation
+from eisitirio.database.affiliation_list_entry import AffiliationListEntry
 from eisitirio.database.announcement import Announcement
 from eisitirio.database.battels import Battels
 from eisitirio.database.battels_transaction import BattelsTransaction
@@ -35,6 +36,7 @@ from eisitirio.database.postage_transaction_item import PostageTransactionItem
 from eisitirio.database.purchase_group import PurchaseGroup
 from eisitirio.database.statistic import Statistic
 from eisitirio.database.ticket import Ticket
+from eisitirio.database.ticket_addon import TicketAddon
 from eisitirio.database.ticket_transaction_item import TicketTransactionItem
 from eisitirio.database.transaction import DummyTransaction
 from eisitirio.database.transaction import FreeTransaction

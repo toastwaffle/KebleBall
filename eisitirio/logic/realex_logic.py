@@ -8,6 +8,7 @@ import json
 import hashlib
 
 import flask_login as login
+
 # from flask.ext import login
 import flask
 import requests
@@ -18,6 +19,7 @@ from eisitirio.database import models
 
 APP = app.APP
 DB = db.DB
+
 
 class SHA1CheckError(Exception):
     """Risen on SHA1hashes mismatch """
@@ -30,14 +32,22 @@ class PostDictKeyError(Exception):
     """Risen when required key is missing from post data"""
 
     def __str__(self):
-        return "PostDictKeyError: %s must be present in POST_DATA" % \
-            self.args[0]
+        return "PostDictKeyError: %s must be present in POST_DATA" % self.args[0]
+
 
 class RealexForm(object):
     """Should be overwritten with values required by realex api."""
 
-    def __init__(self, transaction, currency='GBP', data=None, form_attr=None,
-                 fields_attr=None, order_id=None, **kw):
+    def __init__(
+        self,
+        transaction,
+        currency="GBP",
+        data=None,
+        form_attr=None,
+        fields_attr=None,
+        order_id=None,
+        **kw
+    ):
         """Creates an instance of form with data for payment request.
         - currency and amount are requires parameters if you want to create the
           form and attach it in the html.
@@ -74,7 +84,7 @@ class RealexForm(object):
             self.data = data
             return
 
-        amount = '%i' % (transaction.value)
+        amount = "%i" % (transaction.value)
 
         self.form_attr = form_attr
         self.fields_attr = fields_attr
@@ -82,22 +92,33 @@ class RealexForm(object):
         # setting values required by Realex
         assert all([currency, amount])
         self.fields = dict()
-        self.fields['currency'] = currency
-        self.fields['amount'] = amount
-        #self.fields['account'] = 'internet'
-        self.fields['timestamp'] = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        self.fields["currency"] = currency
+        self.fields["amount"] = amount
+        # self.fields['account'] = 'internet'
+        self.fields["timestamp"] = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         uid = "%i" % (transaction.user_id)
-        self.fields['order_id'] = "%i-%s-%s" % (transaction.object_id, self.fields['timestamp'], uid)
+        self.fields["order_id"] = "%i-%s-%s" % (
+            transaction.object_id,
+            self.fields["timestamp"],
+            uid,
+        )
         # hash fields
-        self.sha1hash = hashlib.sha1(".".join([self.fields['timestamp'],
-                                               APP.config['REALEX_MERCHANT_ID'],
-                                               self.fields['order_id'],
-                                               self.fields['amount'],
-                                               self.fields['currency']]))
+        self.sha1hash = hashlib.sha1(
+            ".".join(
+                [
+                    self.fields["timestamp"],
+                    APP.config["REALEX_MERCHANT_ID"],
+                    self.fields["order_id"],
+                    self.fields["amount"],
+                    self.fields["currency"],
+                ]
+            )
+        )
         # sign fields hash with secret and create new hash
-        self.fields['sha1hash'] = hashlib.sha1(".".join([
-            self.sha1hash.hexdigest(), APP.config['REALEX_SECRET']])).hexdigest()
-        self.fields['auto_settle_flag'] = 1
+        self.fields["sha1hash"] = hashlib.sha1(
+            ".".join([self.sha1hash.hexdigest(), APP.config["REALEX_SECRET"]])
+        ).hexdigest()
+        self.fields["auto_settle_flag"] = 1
 
         # setting additional values that will be returned to you
         for k, v in kw.items():
@@ -107,31 +128,33 @@ class RealexForm(object):
     def as_form(self):
         """Renders the form along with all of it's values."""
         form_attr = self.form_attr or dict()
-        form_init = {"action": APP.config['REALEX_ENDPOINT_URL'], "method": "POST"}
+        form_init = {"action": APP.config["REALEX_ENDPOINT_URL"], "method": "POST"}
         form_attr.update(form_init)
-        form_str = "<form %s >\n" % (" ".join(["%s='%s'" % (k, v)
-                                               for k, v in form_attr.items()]))
-        form_str = "%s %s \n" \
-                   "<input type='submit' value='Proceed to secure server' class='button large expanded'/>" \
-                   "</form>" % (form_str, self.as_fields())
-        return (self.fields['order_id'], form_str)
+        form_str = "<form %s >\n" % (
+            " ".join(["%s='%s'" % (k, v) for k, v in form_attr.items()])
+        )
+        form_str = (
+            "%s %s \n"
+            "<input type='submit' value='Proceed to secure server' class='button large expanded'/>"
+            "</form>" % (form_str, self.as_fields())
+        )
+        return (self.fields["order_id"], form_str)
 
     def as_fields(self):
         """Renders only the fields without the enclosing form tag."""
         fields_str = ""
         fields = self.fields_attr or dict()
-        all_fields = {
-            'merchant_id': APP.config['REALEX_MERCHANT_ID']
-        }
-        all_fields['merchant_response_url'] = APP.config['REALEX_RESPONSE_URL']
+        all_fields = {"merchant_id": APP.config["REALEX_MERCHANT_ID"]}
+        all_fields["merchant_response_url"] = APP.config["REALEX_RESPONSE_URL"]
         all_fields.update(self.fields)
         for k, v in all_fields.items():
             field_init = {"name": k.upper(), "value": v, "type": "hidden"}
             field_data = fields.get(k, {})
             field_data.update(field_init)
             fields_str = "%s<input " % fields_str
-            prepare_extras = " ".join(["%s='%s'" % (x, z)
-                                       for x, z in field_data.items()])
+            prepare_extras = " ".join(
+                ["%s='%s'" % (x, z) for x, z in field_data.items()]
+            )
             fields_str = "%s %s />\n" % (fields_str, prepare_extras)
         return fields_str
 
@@ -145,8 +168,16 @@ class RealexForm(object):
         :raises PostDictKeyError: for any missing key that is required in the
                                   post response from realex
         """
-        required_in_post = ["TIMESTAMP", "MERCHANT_ID", "ORDER_ID", "RESULT",
-                            "MESSAGE", "PASREF", "AUTHCODE", "SHA1HASH"]
+        required_in_post = [
+            "TIMESTAMP",
+            "MERCHANT_ID",
+            "ORDER_ID",
+            "RESULT",
+            "MESSAGE",
+            "PASREF",
+            "AUTHCODE",
+            "SHA1HASH",
+        ]
 
         for item in required_in_post:
             if item not in self.data.keys():
@@ -154,17 +185,18 @@ class RealexForm(object):
 
         required_in_post.remove("SHA1HASH")
 
-        sha1hash = hashlib.sha1(".".join([self.data[x]
-                                          for x in required_in_post]))
-        sha1hash = hashlib.sha1("%s.%s" % (sha1hash.hexdigest(),
-                                           APP.config['REALEX_SECRET']))
+        sha1hash = hashlib.sha1(".".join([self.data[x] for x in required_in_post]))
+        sha1hash = hashlib.sha1(
+            "%s.%s" % (sha1hash.hexdigest(), APP.config["REALEX_SECRET"])
+        )
 
         if sha1hash.hexdigest() != self.data["SHA1HASH"]:
-            raise SHA1CheckError("%s != %s" % (sha1hash.hexdigest(),
-                                               self.data["SHA1HASH"]))
+            raise SHA1CheckError(
+                "%s != %s" % (sha1hash.hexdigest(), self.data["SHA1HASH"])
+            )
 
         data = dict((k.lower(), v) for k, v in self.data.items())
-        setattr(self, 'cleaned_data', data)
+        setattr(self, "cleaned_data", data)
 
 
 def generate_payment_form(transaction):
@@ -172,67 +204,60 @@ def generate_payment_form(transaction):
 
     (order_id, form_str) = form.as_form()
 
-    transaction.eway_transaction = models.EwayTransaction(
-        order_id,
-        transaction.value
-    )
+    transaction.eway_transaction = models.EwayTransaction(order_id, transaction.value)
 
     DB.session.commit()
 
     APP.log_manager.log_event(
-        'Started Card Payment',
+        "Started Card Payment",
         tickets=transaction.tickets,
         user=login.current_user,
-        transaction=transaction
+        transaction=transaction,
     )
 
     return form_str
 
+
 def get_transaction_id(str):
-    return int(str.split('-')[0])
+    return int(str.split("-")[0])
+
 
 def process_payment(request):
 
-    APP.log_manager.log_event('Received callback from Realex')
+    APP.log_manager.log_event("Received callback from Realex")
 
-    if 'ORDER_ID' not in request.form:
+    if "ORDER_ID" not in request.form:
         flask.flash(
             (
-                'There was a problem with our payment provider, '
+                "There was a problem with our payment provider, "
                 'please contact <a href="{0}">the treasurer</a> '
-                'to confirm that payment has not been taken before trying again'
-            ).format(
-                APP.config['TREASURER_EMAIL_LINK'],
-            ),
-            'warning'
+                "to confirm that payment has not been taken before trying again"
+            ).format(APP.config["TREASURER_EMAIL_LINK"]),
+            "warning",
         )
         APP.log_manager.log_event(
-            'Error processing payment: ORDER_ID not in POST request.'
+            "Error processing payment: ORDER_ID not in POST request."
         )
         return None
 
     transaction = models.Transaction.get_by_id(
-        get_transaction_id(request.form['ORDER_ID'])
+        get_transaction_id(request.form["ORDER_ID"])
     )
 
     if transaction is None:
         flask.flash(
             (
-                'There was a problem with our payment provider, '
+                "There was a problem with our payment provider, "
                 'please contact <a href="{0}">the treasurer</a> '
-                'to confirm that payment has not been taken before trying again'
-            ).format(
-                APP.config['TREASURER_EMAIL_LINK'],
-            ),
-            'warning'
+                "to confirm that payment has not been taken before trying again"
+            ).format(APP.config["TREASURER_EMAIL_LINK"]),
+            "warning",
         )
         APP.log_manager.log_event(
             (
-                'Error processing payment: unable to find transaction in database.'
-                ' ORDER_ID was {0}'
-            ).format(
-                request.form['ORDER_ID']
-            )
+                "Error processing payment: unable to find transaction in database."
+                " ORDER_ID was {0}"
+            ).format(request.form["ORDER_ID"])
         )
 
         return None
@@ -244,28 +269,26 @@ def process_payment(request):
         form.is_valid()
     except SHA1CheckError as exc:
         APP.log_manager.log_event(
-            'Suspicious Response from Realex: SHA1HASH does not match.',
-            transaction=transaction
+            "Suspicious Response from Realex: SHA1HASH does not match.",
+            transaction=transaction,
         )
 
         flask.flash(
             (
-                'There is a possible problem with our payment provider, '
+                "There is a possible problem with our payment provider, "
                 'please contact <a href="{0}">the treasurer</a> '
-                'to confirm that payment has not been taken before trying again'
-            ).format(
-                APP.config['TREASURER_EMAIL_LINK'],
-            ),
-            'warning'
+                "to confirm that payment has not been taken before trying again"
+            ).format(APP.config["TREASURER_EMAIL_LINK"]),
+            "warning",
         )
         return None
 
     realex_transaction = transaction.eway_transaction
     realex_transaction.completed = datetime.datetime.utcnow()
     # Stored result codes are only of length two
-    realex_transaction.result_code = request.form['RESULT'][:2]
-    realex_transaction.charged = int(request.form['AMOUNT'])
-    realex_transaction.eway_id = request.form['PASREF']
+    realex_transaction.result_code = request.form["RESULT"][:2]
+    realex_transaction.charged = int(request.form["AMOUNT"])
+    realex_transaction.eway_id = request.form["PASREF"]
 
     DB.session.commit()
 
@@ -275,31 +298,31 @@ def process_payment(request):
         transaction.mark_as_paid()
 
         APP.log_manager.log_event(
-            'Completed Card Payment',
+            "Completed Card Payment",
             tickets=transaction.tickets,
             user=transaction.user,
             transaction=transaction,
-            in_app=True
+            in_app=True,
         )
         return realex_transaction
-    else: # Invalid Realex payment
+    else:  # Invalid Realex payment
         APP.log_manager.log_event(
-            'Failed Card Payment. Error is {0}.'.format(realex_transaction.status[0]
-            ),
+            "Failed Card Payment. Error is {0}.".format(realex_transaction.status[0]),
             tickets=transaction.tickets,
             user=transaction.user,
             transaction=transaction,
-            in_app=True
+            in_app=True,
         )
 
         flask.flash(
             (
-                'The card payment failed. You have not been charged. Please make '
-                'sure you have enough money in your account, or try a different card.'
+                "The card payment failed. You have not been charged. Please make "
+                "sure you have enough money in your account, or try a different card."
             ),
-            'error'
+            "error",
         )
         return None
+
 
 ## def _send_request(endpoint, data, transaction):
 ##     """Helper to send requests to the eWay API.

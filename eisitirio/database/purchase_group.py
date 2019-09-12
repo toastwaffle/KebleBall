@@ -9,59 +9,32 @@ from eisitirio.helpers import util
 DB = db.DB
 
 GROUP_MEMBER_LINK = DB.Table(
-    'purchase_group_member_link',
+    "purchase_group_member_link",
     DB.Model.metadata,
-    DB.Column('group_id',
-              DB.Integer,
-              DB.ForeignKey('purchase_group.object_id')
-             ),
-    DB.Column('user_id',
-              DB.Integer,
-              DB.ForeignKey('user.object_id')
-             )
+    DB.Column("group_id", DB.Integer, DB.ForeignKey("purchase_group.object_id")),
+    DB.Column("user_id", DB.Integer, DB.ForeignKey("user.object_id")),
 )
+
 
 class PurchaseGroup(DB.Model):
     """Model for a purchase group to allow pooling allowances."""
-    __tablename__ = 'purchase_group'
 
-    code = DB.Column(
-        DB.Unicode(10),
-        unique=True,
-        nullable=False
-    )
+    __tablename__ = "purchase_group"
 
-    leader_id = DB.Column(
-        DB.Integer,
-        DB.ForeignKey('user.object_id'),
-        nullable=False
-    )
-    leader = DB.relationship(
-        'User',
-        foreign_keys=[leader_id]
-    )
+    code = DB.Column(DB.Unicode(10), unique=True, nullable=False)
+
+    leader_id = DB.Column(DB.Integer, DB.ForeignKey("user.object_id"), nullable=False)
+    leader = DB.relationship("User", foreign_keys=[leader_id])
 
     members = DB.relationship(
-        'User',
+        "User",
         secondary=GROUP_MEMBER_LINK,
-        backref=DB.backref(
-            'purchase_group',
-            lazy=False,
-            uselist=False
-        ),
-        lazy='dynamic'
+        backref=DB.backref("purchase_group", lazy=False, uselist=False),
+        lazy="dynamic",
     )
 
-    disbanded = DB.Column(
-        DB.Boolean(),
-        default=False,
-        nullable=False
-    )
-    purchased = DB.Column(
-        DB.Boolean(),
-        default=False,
-        nullable=False
-    )
+    disbanded = DB.Column(DB.Boolean(), default=False, nullable=False)
+    purchased = DB.Column(DB.Boolean(), default=False, nullable=False)
 
     def __init__(self, leader):
         self.leader = leader
@@ -70,10 +43,8 @@ class PurchaseGroup(DB.Model):
         self.code = util.generate_key(10)
 
     def __repr__(self):
-        return '<PurchaseGroup({0}): {1} tickets, £{2}>'.format(
-            self.object_id,
-            self.total_requested,
-            self.total_value_pounds
+        return "<PurchaseGroup({0}): {1} tickets, £{2}>".format(
+            self.object_id, self.total_requested, self.total_value_pounds
         )
 
     @property
@@ -84,9 +55,9 @@ class PurchaseGroup(DB.Model):
     @property
     def total_value_pounds(self):
         """Get the total value of this group in pounds and pence."""
-        value = '{0:03d}'.format(self.total_value)
+        value = "{0:03d}".format(self.total_value)
 
-        return value[:-2] + '.' + value[-2:]
+        return value[:-2] + "." + value[-2:]
 
     @property
     def total_requested(self):

@@ -7,6 +7,7 @@ import csv
 
 import six
 
+
 class UnicodeWriter(object):
     """CSV writer which supports unicode output.
 
@@ -26,6 +27,7 @@ class UnicodeWriter(object):
         buffer, and then re-encodes that data to the chosen encoding before
         writing it to the given stream.
         """
+
         def encode_strings(row):
             for item in row:
                 if isinstance(item, six.string_types):
@@ -35,11 +37,7 @@ class UnicodeWriter(object):
 
         self.writer.writerow(list(encode_strings(row)))
 
-        self.stream.write(
-            self.encoder.encode(
-                self.buffer.getvalue().decode("utf-8")
-            )
-        )
+        self.stream.write(self.encoder.encode(self.buffer.getvalue().decode("utf-8")))
 
         self.buffer.truncate(0)
 

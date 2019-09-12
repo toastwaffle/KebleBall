@@ -8,6 +8,7 @@ import os
 import StringIO
 
 import flask_login as login
+
 # from flask.ext import login
 import flask
 
@@ -21,9 +22,10 @@ from eisitirio.helpers import statistics
 APP = app.APP
 DB = db.DB
 
-ADMIN_DATA = flask.Blueprint('admin_data', __name__)
+ADMIN_DATA = flask.Blueprint("admin_data", __name__)
 
-@ADMIN_DATA.route('/admin/statistics')
+
+@ADMIN_DATA.route("/admin/statistics")
 @login.login_required
 @login_manager.admin_required
 def view_statistics():
@@ -33,35 +35,34 @@ def view_statistics():
     alongside graphs.
     """
     return flask.render_template(
-        'admin_data/statistics.html',
+        "admin_data/statistics.html",
         statistic_groups=static.STATISTIC_GROUPS,
         revenue=statistics.get_revenue(),
         num_postage=models.Postage.query.filter(
-            models.Postage.paid == True # pylint: disable=singleton-comparison
-        ).filter(
-            models.Postage.cancelled == False # pylint: disable=singleton-comparison
-        ).filter(
-            models.Postage.postage_type !=
-            APP.config['GRADUAND_POSTAGE_OPTION'].name
-        ).count()
+            models.Postage.paid == True  # pylint: disable=singleton-comparison
+        )
+        .filter(
+            models.Postage.cancelled == False  # pylint: disable=singleton-comparison
+        )
+        .filter(
+            models.Postage.postage_type != APP.config["GRADUAND_POSTAGE_OPTION"].name
+        )
+        .count(),
     )
 
-@ADMIN_DATA.route('/admin/graphs/<group>')
+
+@ADMIN_DATA.route("/admin/graphs/<group>")
 @login.login_required
 @login_manager.admin_required
 def graph(group):
     """Render graph showing statistics for the given statistic group."""
     image_filename = os.path.join(
-        APP.config['GRAPH_STORAGE_FOLDER'],
-        '{0}.png'.format(group)
+        APP.config["GRAPH_STORAGE_FOLDER"], "{0}.png".format(group)
     )
-    return flask.send_file(
-        image_filename,
-        mimetype='image/png',
-        cache_timeout=900
-    )
+    return flask.send_file(image_filename, mimetype="image/png", cache_timeout=900)
 
-@ADMIN_DATA.route('/admin/data/<group>')
+
+@ADMIN_DATA.route("/admin/data/<group>")
 @login.login_required
 @login_manager.admin_required
 def data(group):
@@ -69,28 +70,23 @@ def data(group):
 
     Exports the statistics used to render the graphs as a CSV file.
     """
-    stats = models.Statistic.query.filter(
-        models.Statistic.group == group.title()
-    ).order_by(
-        models.Statistic.timestamp
-    ).all()
+    stats = (
+        models.Statistic.query.filter(models.Statistic.group == group.title())
+        .order_by(models.Statistic.timestamp)
+        .all()
+    )
 
     csvdata = StringIO.StringIO()
     csvwriter = csv.writer(csvdata)
 
     for stat in stats:
-        csvwriter.writerow(
-            [
-                stat.timestamp.strftime('%c'),
-                stat.statistic,
-                stat.value
-            ]
-        )
+        csvwriter.writerow([stat.timestamp.strftime("%c"), stat.statistic, stat.value])
 
     csvdata.seek(0)
-    return flask.send_file(csvdata, mimetype='text/csv', cache_timeout=900)
+    return flask.send_file(csvdata, mimetype="text/csv", cache_timeout=900)
 
-@ADMIN_DATA.route('/admin/dietary_requirements')
+
+@ADMIN_DATA.route("/admin/dietary_requirements")
 @login.login_required
 @login_manager.admin_required
 def dietary_requirements():
@@ -100,30 +96,34 @@ def dietary_requirements():
     csvdata = StringIO.StringIO()
     csvwriter = csv.writer(csvdata)
 
-    csvwriter.writerow([
-        'Pescetarian',
-        'Vegetarian',
-        'Vegan',
-        'Gluten free',
-        'Nut free',
-        'Dairy free',
-        'Egg free',
-        'Seafood free',
-        'Other',
-    ])
+    csvwriter.writerow(
+        [
+            "Pescetarian",
+            "Vegetarian",
+            "Vegan",
+            "Gluten free",
+            "Nut free",
+            "Dairy free",
+            "Egg free",
+            "Seafood free",
+            "Other",
+        ]
+    )
 
     for requirement in requirements:
-        csvwriter.writerow([
-            'Yes' if requirement.pescetarian else 'No',
-            'Yes' if requirement.vegetarian else 'No',
-            'Yes' if requirement.vegan else 'No',
-            'Yes' if requirement.gluten_free else 'No',
-            'Yes' if requirement.nut_free else 'No',
-            'Yes' if requirement.dairy_free else 'No',
-            'Yes' if requirement.egg_free else 'No',
-            'Yes' if requirement.seafood_free else 'No',
-            requirement.other
-        ])
+        csvwriter.writerow(
+            [
+                "Yes" if requirement.pescetarian else "No",
+                "Yes" if requirement.vegetarian else "No",
+                "Yes" if requirement.vegan else "No",
+                "Yes" if requirement.gluten_free else "No",
+                "Yes" if requirement.nut_free else "No",
+                "Yes" if requirement.dairy_free else "No",
+                "Yes" if requirement.egg_free else "No",
+                "Yes" if requirement.seafood_free else "No",
+                requirement.other,
+            ]
+        )
 
     csvdata.seek(0)
-    return flask.send_file(csvdata, mimetype='text/csv', cache_timeout=900)
+    return flask.send_file(csvdata, mimetype="text/csv", cache_timeout=900)
