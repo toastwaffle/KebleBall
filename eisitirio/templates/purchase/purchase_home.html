@@ -6,9 +6,9 @@
 {% block content %}
     <section id="purchase" class="columns">
         <form action="{{ url_for('purchase.purchase_home') }}" id="purchase_form" method="post">
-            <ol id="purchase_steps">
+            <ul id="purchase_steps" style="list-style: none">
               <div class="rows">
-                <div class="small-12 large-5 columns">
+                <div class="small-16 large-5 columns">
                 <li>
                     <h5>Choose Number of Tickets</h5>
 		            <p> All prices include a &pound;1 booking fee.</p>
@@ -77,7 +77,7 @@
                 <input type="submit" value="Buy Tickets" class="button large expanded" />
               </div>
             </div>
-          </ol>
+          </ul>
         </form>
       </section>
 {% endblock %}

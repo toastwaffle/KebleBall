@@ -1,12 +1,12 @@
 @import url(https://fonts.googleapis.com/css?family=Open+Sans:400,700,400italic,700italic);
-@import url('https://fonts.googleapis.com/css?family=Rubik:400,700,900');
+@import url('https://fonts.googleapis.com/css?family=Orpheus+Pro:400,700,900');
 @import "scss/variables"; // TODO/XXX: When we use this, the row max-width gets all screwed up
 @import "scss/vendor/global";
 @import "scss/vendor/foundation";
 @include foundation-everything;
 
 nav, #page-title, #main, footer, #flashes, #verify_sms {
-    background-color: #afcdd3;
+    background-color: #000d30;
 }
 
 a {
@@ -15,7 +15,7 @@ a {
 
 .header {
   text-align: center;
-  background-image: url(./images/headerbg.png);
+  background-image: url(./images/headerbg_2020.png);
   background-size: contain;
   background-attachment: scroll;
   background-position: center;
@@ -24,11 +24,12 @@ a {
   overflow: visible;
   padding-top: $header-height;
   padding-bottom: $header-height + ($subnav-link-padding * 2 + $subnav-font-size - 0.15rem);
-  //margin-bottom: 0.5rem;
+  margin-bottom: 4rem;
+  margin-top: 2rem;
 
   .header-text {
-    font-family: "Rubik", sans-serif;
-    text-transform: uppercase;;
+    font-family: "Orpheus Pro", sans-serif;
+    text-transform: uppercase;
     padding-top: 5vh;
     padding-bottom: 5vh;
     h1 { font-size: 1.5 * $h1-font-size; }
@@ -38,11 +39,11 @@ a {
   }
 
   .headline {
-    color: #061900;
+    color: #bf9b30;
   }
 
   a {
-    color: #000000;
+    color: #bf9b30;
   }
 }
 
@@ -61,10 +62,10 @@ a {
     a {
       padding: $subnav-link-padding 1rem;
       font-size: $subnav-font-size;
-      color: #061900;
-      text-transform: uppercase;
+      color: #bf9b30;
+      text-transform: capitalize;
       display: block;
-      font-weight: bold;
+      font-weight: normal;
       letter-spacing: 1px;
       transition: $transition;
 
@@ -113,6 +114,7 @@ a {
     background-color: #fff;
     color: #000;
     &.error {
+        color: $white;
         background-color: map-get($foundation-palette, alert);
         border: 3px solid darken(map-get($foundation-palette, alert), 20);
     }
@@ -125,8 +127,9 @@ a {
         border: 3px solid darken(map-get($foundation-palette, success), 20);
     }
     &.info {
-        background-color: #3ba061;
-        border: 3px solid darken(#3ba061, 20);
+        color: $white;
+        background-color: map-get($foundation-palette, info);
+        border: 3px solid darken(map-get($foundation-palette, info), 20);
     }
     p:last-child {
         margin-bottom: 0;

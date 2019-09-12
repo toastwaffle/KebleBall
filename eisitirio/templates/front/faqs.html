@@ -5,12 +5,13 @@
 
 {% block content %}
     <section id="terms" class="columns">
-        <p>Last Updated 17th January 2019</p>
+        <p>Last Updated 8th September 2019</p>
 
         <h4>Account Registration</h4>
 
         <ul>
-            <li><strong>General Release opens at noon Saturday 26th January.</strong></li>
+            <li><strong>Alumni Release opens at noon Tuesday 15 October 2019.</strong></li>
+            <li><strong>Student Release opens at noon on Thursday 31 October 2019.</strong></li>
         </ul>
 
         <h4>Ticket payment</h4>
@@ -34,6 +35,8 @@
             </li>
         </ul>
 
+<!--
+
         <h4>Group Purchase</h4>
 
         <ul>
@@ -54,6 +57,7 @@
             <li>It is the responsibility of each member of the group to pay for their ticket.</li>
             <li>If one member of a group does not pay for their ticket in the {{ format_timedelta(template_config['TICKET_EXPIRY_TIME']) }} period, only their ticket will expire, the rest of the group’s tickets (providing they are paid for) will still be valid.</li>
         </ul>
+-->
 
         <h4>Waiting List</h4>
 
@@ -71,7 +75,8 @@
         <h4>Cancellations, Refunds and Resales</h4>
 
         <ul>
-            <li>Refunds of tickets purchased by card will only be offered in exceptional circumstances and may be subject to an administrative fee. Refunds of tickets purchased through Battels will only be offered until the end of Hilary term.</li>
+            <li>Refunds of tickets purchased by card will only be offered in exceptional circumstances, up until 21 April 2020 and will incur an admin fee of &pound;10 per ticket. Refunds of tickets on and after 22 April 2020 will incur an admin fee of &pound;20 per tickt. No ticket will be refunded after 1 May 2020.</li>
+            <li>Refunds of tickets purchased through Battles will only be offered until the end of Hilary term.</li>
             <li>Tickets may not be resold under any circumstances.</li>
             <li>Any tickets found to have been resold will be cancelled, and both the seller and purchaser will be refused entry to the ball.</li>
         </ul>
@@ -79,22 +84,21 @@
         <h4>Guests</h4>
 
         <ul>
-            <li>All guests are permitted to attend the Ball provided that they are over the age of 18 years old.</li>
-            <li>Each guest who has had a ticket purchased on their behalf will have to register their own account on the Keble Ball website in the following weeks.</li>
+            <li>Each alumnus can purchase up to 10 tickets.</li>
+            <li>All guests are permitted to attend the Ball provided that they are over the age of 18 years old on or after 27 June 2020.</li>
+            <li>Each guest who has had a ticket purchased on their behalf will have to register their own account on the Keble Ball website by 1 May 2020. They can then clain their ticket using the unique ticket claim code shared by the ticket purchaser.</li>
         </ul>
 
         <h4>Tickets & Account Photo</h4>
 
         <ul>
-	    <li> Once you have purchased your ticket, you are entirely responsible for it. You may not share the QR Code related to your ticket.</li>
-            <li>
-                Once you are handed your wristband, you are entirely responsible for it.
+	        <li>Once you have purchased your ticket, you are entirely responsible for it. You may not share the QR Code related to your ticket.</li>
+            <li>Once you are handed your wristband, you are entirely responsible for it.
                 <ul>
                     <li>Keble Ball will not be able to replace or refund any lost, stolen or damaged wristbands.</li>
                 </ul>
             </li>
-            <li>
-                Your account must have an identifiable photo of yourself.
+            <li>Your account must have an identifiable photo of yourself for security purposes.
                 <ul>
                     <li>If your photo is not currently an identifiable headshot it must be changed. This can be done <a href="{{ url_for('dashboard.profile') }}">here</a>.</li>
                     <li>An identifiable headshot must be uploaded before you buy your ticket.</li>
@@ -159,8 +163,9 @@
         <h4>On the night</h4>
 
         <ul>
-            <li>
-                Wristbands must be worn at all times during the Ball.
+            <li>You will need to arrive before 9pm, when gates close.</li>
+            <li>A strict no re-admittance policy will be operating on the night of the Ball, so please bring jackets and flat shoes with you.</li>
+            <li>Wristbands must be worn at all times during the Ball.
                 <ul>
                     <li>Failure to wear your wristband will result in you being removed from the Ball.</li>
                 </ul>
