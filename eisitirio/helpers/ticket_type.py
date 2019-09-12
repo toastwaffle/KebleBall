@@ -15,7 +15,7 @@ _TicketType = collections.namedtuple(
         "total_limit",
         "counts_towards_guest_limit",
         "can_buy",
-    ]
+    ],
 )
 
 
@@ -40,8 +40,8 @@ class TicketType(_TicketType):
     @property
     def price_pounds(self):
         """Return the price in pounds.pence format."""
-        price = '{0:03d}'.format(self.price)
-        return price[:-2] + '.' + price[-2:]
+        price = "{0:03d}".format(self.price)
+        return price[:-2] + "." + price[-2:]
 
     def to_json_dict(self, purchase_limit):
         """Create a dictionary of this object that can be serialised to JSON.
@@ -53,9 +53,51 @@ class TicketType(_TicketType):
             purchase_limit: (int) how many tickets of this type can be bought.
         """
         return {
-            'name': self.name,
-            'slug': self.slug,
-            'price': self.price,
-            'counts_towards_guest_limit': self.counts_towards_guest_limit,
-            'purchase_limit': purchase_limit
+            "name": self.name,
+            "slug": self.slug,
+            "price": self.price,
+            "counts_towards_guest_limit": self.counts_towards_guest_limit,
+            "purchase_limit": purchase_limit,
+        }
+
+
+_Addon = collections.namedtuple(
+    "Addon", ["name", "slug", "price", "total_limit", "can_buy"]
+)
+
+
+class Addon(_Addon):
+    """Namedtuple model for ticket addons.
+
+    Attributes:
+        name: (str) Human readable name for the addon.
+        slug: (str) Machine readable slug for the addon.
+        price: (int) Price for the addon in pence.
+        total_limit: (int) Maximum number of addons of this type that can be
+            bought. -1 if unlimited.
+        can_buy: (function(database.user.User): bool) routine which determines
+            whether the given user can buy/create addons of this type through
+            the main purchase flow.
+    """
+
+    @property
+    def price_pounds(self):
+        """Return the price in pounds.pence format."""
+        price = "{0:03d}".format(self.price)
+        return price[:-2] + "." + price[-2:]
+
+    def to_json_dict(self, limit):
+        """Create a dictionary of this object that can be serialised to JSON.
+
+        Dictionary includes an extra field representing how many tickets of this
+        type can be bought.
+
+        Args:
+            limit: (int) how many addons of this type can be bought.
+        """
+        return {
+            "name": self.name,
+            "slug": self.slug,
+            "price": self.price,
+            "limit": limit,
         }

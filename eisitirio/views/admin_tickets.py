@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 
 import flask_login as login
+
 # from flask.ext import login
 import flask
 import base64
@@ -18,12 +19,11 @@ from eisitirio.scripts import create_qr_codes
 APP = app.APP
 DB = db.DB
 
-ADMIN_TICKETS = flask.Blueprint('admin_tickets', __name__)
+ADMIN_TICKETS = flask.Blueprint("admin_tickets", __name__)
 
-@ADMIN_TICKETS.route('/admin/ticket/<int:ticket_id>/view')
-@ADMIN_TICKETS.route(
-    '/admin/ticket/<int:ticket_id>/view/page/<int:events_page>'
-)
+
+@ADMIN_TICKETS.route("/admin/ticket/<int:ticket_id>/view")
+@ADMIN_TICKETS.route("/admin/ticket/<int:ticket_id>/view/page/<int:events_page>")
 @login.login_required
 @login_manager.admin_required
 def view_ticket(ticket_id, events_page=1):
@@ -31,58 +31,49 @@ def view_ticket(ticket_id, events_page=1):
     ticket = models.Ticket.get_by_id(ticket_id)
 
     if ticket:
-        events = ticket.events.paginate(
-            events_page,
-            10,
-            True
-        )
+        events = ticket.events.paginate(events_page, 10, True)
     else:
         events = None
 
     return flask.render_template(
-        'admin_tickets/view_ticket.html',
+        "admin_tickets/view_ticket.html",
         ticket=ticket,
         events=events,
-        events_page=events_page
+        events_page=events_page,
     )
 
-@ADMIN_TICKETS.route('/admin/ticket/<int:ticket_id>/note',
-                     methods=['GET', 'POST'])
+
+@ADMIN_TICKETS.route("/admin/ticket/<int:ticket_id>/note", methods=["GET", "POST"])
 @login.login_required
 @login_manager.admin_required
 def note_ticket(ticket_id):
     """Set notes for a ticket."""
-    if flask.request.method != 'POST':
-        return flask.redirect(flask.request.referrer or
-                              flask.url_for('admin.admin_home'))
+    if flask.request.method != "POST":
+        return flask.redirect(
+            flask.request.referrer or flask.url_for("admin.admin_home")
+        )
 
     ticket = models.Ticket.get_by_id(ticket_id)
 
     if ticket:
-        ticket.note = flask.request.form['notes']
+        ticket.note = flask.request.form["notes"]
         DB.session.commit()
 
-        APP.log_manager.log_event(
-            'Updated notes',
-            tickets=[ticket]
-        )
+        APP.log_manager.log_event("Updated notes", tickets=[ticket])
 
-        flask.flash(
-            'Notes set successfully.',
-            'success'
+        flask.flash("Notes set successfully.", "success")
+        return flask.redirect(
+            flask.request.referrer
+            or flask.url_for("admin_tickets.view_ticket", ticket_id=ticket.object_id)
         )
-        return flask.redirect(flask.request.referrer or
-                              flask.url_for('admin_tickets.view_ticket',
-                                            ticket_id=ticket.object_id))
     else:
-        flask.flash(
-            'Could not find ticket, could not set notes.',
-            'warning'
+        flask.flash("Could not find ticket, could not set notes.", "warning")
+        return flask.redirect(
+            flask.request.referrer or flask.url_for("admin.admin_home")
         )
-        return flask.redirect(flask.request.referrer or
-                              flask.url_for('admin.admin_home'))
 
-@ADMIN_TICKETS.route('/admin/ticket/<int:ticket_id>/markpaid')
+
+@ADMIN_TICKETS.route("/admin/ticket/<int:ticket_id>/markpaid")
 @login.login_required
 @login_manager.admin_required
 def mark_ticket_paid(ticket_id):
@@ -97,27 +88,21 @@ def mark_ticket_paid(ticket_id):
         ticket.paid = True
         DB.session.commit()
 
-        APP.log_manager.log_event(
-            'Marked as paid',
-            tickets=[ticket]
-        )
+        APP.log_manager.log_event("Marked as paid", tickets=[ticket])
 
-        flask.flash(
-            'Ticket successfully marked as paid.',
-            'success'
+        flask.flash("Ticket successfully marked as paid.", "success")
+        return flask.redirect(
+            flask.request.referrer
+            or flask.url_for("admin_tickets.view_ticket", ticket_id=ticket.object_id)
         )
-        return flask.redirect(flask.request.referrer or
-                              flask.url_for('admin_tickets.view_ticket',
-                                            ticket_id=ticket.object_id))
     else:
-        flask.flash(
-            'Could not find ticket, could not mark as paid.',
-            'warning'
+        flask.flash("Could not find ticket, could not mark as paid.", "warning")
+        return flask.redirect(
+            flask.request.referrer or flask.url_for("admin.admin_home")
         )
-        return flask.redirect(flask.request.referrer or
-                              flask.url_for('admin.admin_home'))
 
-@ADMIN_TICKETS.route('/admin/ticket/<int:ticket_id>/autocancel')
+
+@ADMIN_TICKETS.route("/admin/ticket/<int:ticket_id>/autocancel")
 @login.login_required
 @login_manager.admin_required
 def refund_ticket(ticket_id):
@@ -130,31 +115,31 @@ def refund_ticket(ticket_id):
 
     if ticket:
         if not ticket.can_be_cancelled():
-            flask.flash(
-                'Could not automatically cancel ticket.',
-                'warning'
+            flask.flash("Could not automatically cancel ticket.", "warning")
+            return flask.redirect(
+                flask.request.referrer
+                or flask.url_for(
+                    "admin_tickets.view_ticket", ticket_id=ticket.object_id
+                )
             )
-            return flask.redirect(flask.request.referrer or
-                                  flask.url_for('admin_tickets.view_ticket',
-                                                ticket_id=ticket.object_id))
 
         if cancellation_logic.cancel_tickets([ticket], quiet=True):
-            flask.flash('Ticket was cancelled and refunded.', 'success')
+            flask.flash("Ticket was cancelled and refunded.", "success")
         else:
-            flask.flash('Ticket could not be cancelled/refunded.', 'error')
+            flask.flash("Ticket could not be cancelled/refunded.", "error")
 
-        return flask.redirect(flask.request.referrer or
-                              flask.url_for('admin_tickets.view_ticket',
-                                            ticket_id=ticket.object_id))
-    else:
-        flask.flash(
-            'Could not find ticket, could not cancel.',
-            'warning'
+        return flask.redirect(
+            flask.request.referrer
+            or flask.url_for("admin_tickets.view_ticket", ticket_id=ticket.object_id)
         )
-        return flask.redirect(flask.request.referrer or
-                              flask.url_for('admin.admin_home'))
+    else:
+        flask.flash("Could not find ticket, could not cancel.", "warning")
+        return flask.redirect(
+            flask.request.referrer or flask.url_for("admin.admin_home")
+        )
 
-@ADMIN_TICKETS.route('/admin/ticket/<int:ticket_id>/cancel')
+
+@ADMIN_TICKETS.route("/admin/ticket/<int:ticket_id>/cancel")
 @login.login_required
 @login_manager.admin_required
 def cancel_ticket(ticket_id):
@@ -165,27 +150,21 @@ def cancel_ticket(ticket_id):
         ticket.cancelled = True
         DB.session.commit()
 
-        APP.log_manager.log_event(
-            'Marked ticket as cancelled',
-            tickets=[ticket]
-        )
+        APP.log_manager.log_event("Marked ticket as cancelled", tickets=[ticket])
 
-        flask.flash(
-            'Ticket cancelled successfully.',
-            'success'
+        flask.flash("Ticket cancelled successfully.", "success")
+        return flask.redirect(
+            flask.request.referrer
+            or flask.url_for("admin_tickets.view_ticket", ticket_id=ticket.object_id)
         )
-        return flask.redirect(flask.request.referrer or
-                              flask.url_for('admin_tickets.view_ticket',
-                                            ticket_id=ticket.object_id))
     else:
-        flask.flash(
-            'Could not find ticket, could not cancel.',
-            'warning'
+        flask.flash("Could not find ticket, could not cancel.", "warning")
+        return flask.redirect(
+            flask.request.referrer or flask.url_for("admin.admin_home")
         )
-        return flask.redirect(flask.request.referrer or
-                              flask.url_for('admin.admin_home'))
 
-@ADMIN_TICKETS.route('/admin/ticket/<int:ticket_id>/uncollect')
+
+@ADMIN_TICKETS.route("/admin/ticket/<int:ticket_id>/uncollect")
 @login.login_required
 @login_manager.admin_required
 def uncollect_ticket(ticket_id):
@@ -201,27 +180,21 @@ def uncollect_ticket(ticket_id):
         ticket.barcode = None
         DB.session.commit()
 
-        APP.log_manager.log_event(
-            'Marked ticket as uncollected',
-            tickets=[ticket]
-        )
+        APP.log_manager.log_event("Marked ticket as uncollected", tickets=[ticket])
 
-        flask.flash(
-            u'Ticket marked as uncollected.',
-            'success'
+        flask.flash("Ticket marked as uncollected.", "success")
+        return flask.redirect(
+            flask.request.referrer
+            or flask.url_for("admin_tickets.view_ticket", ticket_id=ticket.object_id)
         )
-        return flask.redirect(flask.request.referrer or
-                              flask.url_for('admin_tickets.view_ticket',
-                                            ticket_id=ticket.object_id))
     else:
-        flask.flash(
-            u'Could not find ticket, could not mark as uncollected.',
-            'warning'
+        flask.flash("Could not find ticket, could not mark as uncollected.", "warning")
+        return flask.redirect(
+            flask.request.referrer or flask.url_for("admin.admin_home")
         )
-        return flask.redirect(flask.request.referrer or
-                              flask.url_for('admin.admin_home'))
 
-@ADMIN_TICKETS.route('/admin/ticket/validate', methods=['POST', 'GET'])
+
+@ADMIN_TICKETS.route("/admin/ticket/validate", methods=["POST", "GET"])
 @login.login_required
 @login_manager.admin_required
 def validate_ticket():
@@ -235,39 +208,39 @@ def validate_ticket():
     message = None
     photo = None
 
-    if flask.request.method == 'POST':
+    if flask.request.method == "POST":
         ticket = models.Ticket.query.filter(
-            models.Ticket.barcode == flask.request.form['barcode']).first()
+            models.Ticket.barcode == flask.request.form["barcode"].split(",")[1]
+        ).first()
 
         if not ticket:
             valid = False
-            message = 'No such ticket with barcode {0}'.format(
-                flask.request.form['barcode'])
+            message = "No such ticket with barcode {0}".format(
+                flask.request.form["barcode"]
+            )
         elif ticket.entered:
             valid = False
             message = (
-                'Ticket has already been used for '
-                'entry. Check ID against {0} (owned by {1})'
-            ).format(
-                ticket.holder.full_name,
-                ticket.owner.full_name
-            )
+                "Ticket has already been used for "
+                "entry. Check ID against {0} (owned by {1})"
+            ).format(ticket.holder.full_name, ticket.owner.full_name)
             photo = ticket.holder.photo
         else:
             ticket.entered = True
             DB.session.commit()
             valid = True
-            message = 'Permit entry for {0}'.format(ticket.holder.full_name)
+            message = "Permit entry for {0}".format(ticket.holder.full_name)
             photo = ticket.holder.photo
 
     return flask.render_template(
-        'admin_tickets/validate_ticket.html',
-        valid=valid,
-        message=message,
-        photo=photo
+        "admin_tickets/validate_ticket.html", valid=valid, message=message, photo=photo
     )
 
-@ADMIN_TICKETS.route('/admin/ticket/validate-ticket/<int:ticket_id>/<string:barcode>', methods=['POST', 'GET'])
+
+@ADMIN_TICKETS.route(
+    "/admin/ticket/validate-ticket/<int:ticket_id>/<string:barcode>",
+    methods=["POST", "GET"],
+)
 @login.login_required
 @login_manager.admin_required
 def check_ticket(ticket_id, barcode):
@@ -279,68 +252,124 @@ def check_ticket(ticket_id, barcode):
 
     if not ticket:
         valid = False
-        message = 'No such ticket with barcode {0}'.format(barcode)
+        message = "No such ticket with barcode {0}".format(barcode)
         # XXX : Need to return a non-null image here
     elif ticket.entered:
         valid = False
         message = (
-            'Ticket has already been used for '
-            'entry. Check ID against {0} (owned by {1})'
+            "Ticket has already been used for "
+            "entry. Check ID against {0} (owned by {1})"
         ).format(
-            ticket.holder.full_name.encode('utf-8'),
-            ticket.owner.full_name.encode('utf-8')
+            ticket.holder.full_name.encode("utf-8"),
+            ticket.owner.full_name.encode("utf-8"),
         )
         photo = ticket.holder.photo.thumb_url
     elif not ticket.holder:
         valid = False
-        message = (
-            'Ticket has not been claimed. Owner is {0}'
-            ).format(ticket.owner.full_name.encode('utf-8'))
+        message = ("Ticket has not been claimed. Owner is {0}").format(
+            ticket.owner.full_name.encode("utf-8")
+        )
         photo = ticket.owner.photo.thumb_url
     elif not ticket.barcode or (ticket.barcode and ticket.barcode != barcode):
         valid = False
-        message = 'Found ticket, barcode doesnt match {0}'.format(barcode)
+        message = "Found ticket, barcode doesnt match {0}".format(barcode)
         photo = ticket.holder.photo.thumb_url
     else:
         ticket.entered = True
         DB.session.commit()
 
         valid = True
-        message = 'Permit entry for {0}'.format(ticket.holder.full_name.encode('utf-8'))
+        message = "Permit entry for {0}".format(ticket.holder.full_name.encode("utf-8"))
         photo = ticket.holder.photo.thumb_url
+
+    return flask.jsonify(ticketvalid=valid, message=message, photourl=photo)
+
+
+@ADMIN_TICKETS.route(
+    "/mobile-app/ticket/validate-ticket/<string:key>/<int:ticket_id>/<string:barcode>",
+    methods=["POST", "GET"],
+)
+def check_ticket_mobileapp(key, ticket_id, barcode):
+    valid = None
+    message = None
+    photo = None
+
+    if key != APP.config["MOBILE_APP_KEY"]:
+        valid = False
+        message = "You don't have permissions (wrong mobile app private key). Contact the IT Officer!!!"
+    else:
+        ticket = models.Ticket.get_by_id(ticket_id)
+
+        if not ticket:
+            valid = False
+            message = "No such ticket with barcode: {0}".format(barcode)
+        elif not ticket.barcode or (ticket.barcode and ticket.barcode != barcode):
+            valid = False
+            message = "Found ticket, but the barcode doesn't match: {0}".format(barcode)
+        elif not ticket.holder:
+            valid = False
+            message = ("Ticket has not been claimed. Owner is:\n    {0}").format(
+                ticket.owner.full_name.encode("utf-8")
+            )
+            photo = ticket.owner.photo.full_url
+        elif ticket.entered:
+            valid = False
+            message = (
+                "Ticket has already been used for entry. Check ID against:\n    {0}\n\nOwned by:\n    {1}"
+            ).format(
+                ticket.holder.full_name.encode("utf-8"),
+                ticket.owner.full_name.encode("utf-8"),
+            )
+            photo = ticket.holder.photo.full_url
+        else:
+            ticket.entered = True
+            DB.session.commit()
+
+            APP.log_manager.log_event(
+                "Marked ticket as entered from Scanning App", tickets=[ticket]
+            )
+
+            valid = True
+            message = "Permit entry for:\n    {0}\nAddons: {1}".format(
+                ticket.holder.full_name.encode("utf-8"), ticket.addons_str
+            )
+            photo = ticket.holder.photo.full_url
 
     return flask.jsonify(ticketvalid=valid, message=message, photourl=photo)
 
 
 ###########################################################################
 
-@ADMIN_TICKETS.route('/admin/ticket/check-ticket-qrs', methods=['POST', 'GET'])
+
+@ADMIN_TICKETS.route("/admin/ticket/check-ticket-qrs", methods=["POST", "GET"])
 @login.login_required
 @login_manager.admin_required
 def check_ticket_qr():
     """A simple little view to make sure all the qrs are working correctly"""
 
     tickets = models.Ticket.query.filter(
-        models.Ticket.barcode != None,
-        models.Ticket.holder_id != None
+        models.Ticket.barcode != None, models.Ticket.holder_id != None
     ).all()
 
     index = -1
 
-    if flask.request.method == 'POST':
-        index = int(flask.request.form['current_ticket_index'])
+    if flask.request.method == "POST":
+        index = int(flask.request.form["current_ticket_index"])
         if len(tickets) <= index + 1:
             return "Done"
 
     ticket = tickets[index + 1]
     return flask.render_template(
-            'admin_tickets/check_ticket_qrs.html',
-            idx=index + 1,
-            barcode=base64.b64encode(create_qr_codes.generate_ticket_qr(ticket))
-        )
+        "admin_tickets/check_ticket_qrs.html",
+        idx=index + 1,
+        barcode=base64.b64encode(create_qr_codes.generate_ticket_qr(ticket)),
+    )
 
 
-@ADMIN_TICKETS.route('/admin/ticket/test-validate-ticket/<int:ticket_id>/<string:barcode>', methods=['POST', 'GET'])
+@ADMIN_TICKETS.route(
+    "/admin/ticket/test-validate-ticket/<int:ticket_id>/<string:barcode>",
+    methods=["POST", "GET"],
+)
 @login.login_required
 @login_manager.admin_required
 def test_check_ticket(ticket_id, barcode):
@@ -352,31 +381,31 @@ def test_check_ticket(ticket_id, barcode):
 
     if not ticket:
         valid = False
-        message = 'No such ticket with barcode {0}'.format(barcode)
+        message = "No such ticket with barcode {0}".format(barcode)
         # XXX : Need to return a non-null image here
     elif ticket.entered:
         valid = False
         message = (
-            'Ticket has already been used for '
-            'entry. Check ID against {0} (owned by {1})'
+            "Ticket has already been used for "
+            "entry. Check ID against {0} (owned by {1})"
         ).format(
-            ticket.holder.full_name.encode('utf-8'),
-            ticket.owner.full_name.encode('utf-8')
+            ticket.holder.full_name.encode("utf-8"),
+            ticket.owner.full_name.encode("utf-8"),
         )
         photo = ticket.holder.photo.thumb_url
     elif not ticket.holder:
         valid = False
-        message = (
-            'Ticket has not been claimed. Owner is {0}'
-            ).format(ticket.owner.full_name.encode('utf-8'))
+        message = ("Ticket has not been claimed. Owner is {0}").format(
+            ticket.owner.full_name.encode("utf-8")
+        )
         photo = ticket.owner.photo.thumb_url
     elif not ticket.barcode or (ticket.barcode and ticket.barcode != barcode):
         valid = False
-        message = 'Found ticket, barcode doesnt match {0}'.format(barcode)
+        message = "Found ticket, barcode doesnt match {0}".format(barcode)
         photo = ticket.holder.photo.thumb_url
     else:
         valid = True
-        message = 'Permit entry for {0}'.format(ticket.holder.full_name.encode('utf-8'))
+        message = "Permit entry for {0}".format(ticket.holder.full_name.encode("utf-8"))
         photo = ticket.holder.photo.thumb_url
 
     return flask.jsonify(ticketvalid=valid, message=message, photourl=photo)

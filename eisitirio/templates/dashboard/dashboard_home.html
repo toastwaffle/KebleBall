@@ -38,8 +38,9 @@
         {% endif %}
 
         {% if (current_user.held_ticket != None) and (current_user.held_ticket.barcode != None) and (barcode is defined) %}
-          <h3>Your Entry Ticket</h3>
+            <h3>Your Entry Ticket</h3>
             <img src="data:image/png;base64, {{ barcode }}" value="Your Ticket" />
+            <p>Addons: {{ current_user.held_ticket.addons_str }}</p>
         {% endif %}
 
         <h3>Tickets You Own</h3>

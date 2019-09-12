@@ -12,14 +12,16 @@ from matplotlib import pyplot
 from eisitirio import app
 from eisitirio.database import models
 
-COLORS = 'rgbcmyk'
-POINTS = '^os*+xDH'
-STYLES = [c + p + '-' for p in POINTS for c in COLORS]
+COLORS = "rgbcmyk"
+POINTS = "^os*+xDH"
+STYLES = [c + p + "-" for p in POINTS for c in COLORS]
 
-_PlotDescriptor = collections.namedtuple('PlotDescriptor',
-                                         ['timestamps', 'datapoints',
-                                          'line_style', 'label',
-                                          'current_value'])
+_PlotDescriptor = collections.namedtuple(
+    "PlotDescriptor",
+    ["timestamps", "datapoints", "line_style", "label", "current_value"],
+)
+
+
 class PlotDescriptor(_PlotDescriptor):
     """Describe a plot on a graph.
 
@@ -34,6 +36,7 @@ class PlotDescriptor(_PlotDescriptor):
             in the legend.
     """
 
+
 def create_plot(group):
     """Create a plot for a set of statistics.
 
@@ -46,11 +49,11 @@ def create_plot(group):
     Returns:
         a flask response object with the plot as a PNG image file
     """
-    statistics = models.Statistic.query.filter(
-        models.Statistic.group == group
-    ).order_by(
-        models.Statistic.timestamp
-    ).all()
+    statistics = (
+        models.Statistic.query.filter(models.Statistic.group == group)
+        .order_by(models.Statistic.timestamp)
+        .all()
+    )
 
     style_index = 0
 
@@ -59,34 +62,33 @@ def create_plot(group):
     for statistic in statistics:
         if statistic.statistic not in plots:
             plots[statistic.statistic] = {
-                'timestamps': [],
-                'datapoints': [],
-                'line_style': STYLES[style_index],
-                'current_value': 0
+                "timestamps": [],
+                "datapoints": [],
+                "line_style": STYLES[style_index],
+                "current_value": 0,
             }
             style_index = (style_index + 1) % len(STYLES)
 
-        plots[statistic.statistic]['timestamps'].append(statistic.timestamp)
-        plots[statistic.statistic]['datapoints'].append(statistic.value)
-        plots[statistic.statistic]['current_value'] = statistic.value
+        plots[statistic.statistic]["timestamps"].append(statistic.timestamp)
+        plots[statistic.statistic]["datapoints"].append(statistic.value)
+        plots[statistic.statistic]["current_value"] = statistic.value
 
     render_plot(
-        os.path.join(
-            app.APP.config['GRAPH_STORAGE_FOLDER'],
-            '{0}.png'.format(group)
-        ),
+        os.path.join(app.APP.config["GRAPH_STORAGE_FOLDER"], "{0}.png".format(group)),
         [
             PlotDescriptor(
-                timestamps=plot['timestamps'],
-                datapoints=plot['datapoints'],
-                line_style=plot['line_style'],
-                current_value=plot['current_value'],
-                label=label
-            ) for (label, plot) in plots.iteritems()
+                timestamps=plot["timestamps"],
+                datapoints=plot["datapoints"],
+                line_style=plot["line_style"],
+                current_value=plot["current_value"],
+                label=label,
+            )
+            for (label, plot) in plots.iteritems()
         ],
         statistics[0].timestamp,
-        statistics[-1].timestamp
+        statistics[-1].timestamp,
     )
+
 
 def render_plot(filename, plots, x_lim_min, x_lim_max):
     """Render a graph as a view.
@@ -112,26 +114,25 @@ def render_plot(filename, plots, x_lim_min, x_lim_max):
             plot.timestamps,
             plot.datapoints,
             plot.line_style,
-            label=(plot.label + ' - ' + str(plot.current_value)),
-            markevery=18
+            label=(plot.label + " - " + str(plot.current_value)),
+            markevery=18,
         )
 
     axes.set_xlim(x_lim_min, x_lim_max)
-    axes.grid(True, 'major', 'y')
-    legend = axes.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-    axes.spines['top'].set_visible(False)
-    axes.spines['right'].set_visible(False)
+    axes.grid(True, "major", "y")
+    legend = axes.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.0)
+    axes.spines["top"].set_visible(False)
+    axes.spines["right"].set_visible(False)
     axes.xaxis.set_major_locator(dates.DayLocator())
-    axes.xaxis.set_major_formatter(dates.DateFormatter('%a %d %B %Y'))
+    axes.xaxis.set_major_formatter(dates.DateFormatter("%a %d %B %Y"))
 
-    axes.fmt_xdata = dates.DateFormatter('%Y-%m-%d %H:%M:%S')
+    axes.fmt_xdata = dates.DateFormatter("%Y-%m-%d %H:%M:%S")
     fig.autofmt_xdate()
 
     pyplot.savefig(
         filename,
-        format='png',
+        format="png",
         bbox_extra_artists=(legend,),
-        bbox_inches='tight',
-        facecolor='white'
+        bbox_inches="tight",
+        facecolor="white",
     )
-

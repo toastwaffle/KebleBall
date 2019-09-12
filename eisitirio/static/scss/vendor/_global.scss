@@ -23,11 +23,12 @@ $global-lineheight: 1.5 !default;
 /// Colors used for buttons, callouts, links, etc. There must always be a color called `primary`.
 /// @type Map
 $foundation-palette: (
-  primary: blue,
-  secondary: red,
+  primary: #bf9b30 /* gold */ ,
+  secondary: #ff5050 /* red */ ,
   success: #3adb76,
   warning: #ffae00,
-  alert: #ec5840,
+  alert: #bf1616,
+  info: #6a84d0,
 ) !default;
 
 /// Color used for light gray UI items.
@@ -52,7 +53,7 @@ $white: #fefefe !default;
 
 /// Background color of the body.
 /// @type Color
-$body-background: $black !default;
+$body-background: #000d30 !default;
 
 /// Text color of the body.
 /// @type Color
@@ -60,7 +61,7 @@ $body-font-color: $white !default;
 
 /// Font stack of the body.
 /// @type List
-$body-font-family: 'Open Sans', sans-serif !default;
+$body-font-family: 'Montserrat Medium' !default;
 
 /// Set to `true` to enable antialiased type, using the `-webkit-font-smoothing` and `-moz-osx-font-smoothing` CSS properties.
 /// @type Boolean
@@ -222,7 +223,7 @@ $-zf-flex-classes-imported: false;
      ========================================================================== */
 
   html {
-    font-family: sans-serif; /* 1 */
+    font-family: "Montserrat Medium"; /* 1 */
     line-height: 1.15; /* 2 */
     -ms-text-size-adjust: 100%; /* 3 */
     -webkit-text-size-adjust: 100%; /* 3 */

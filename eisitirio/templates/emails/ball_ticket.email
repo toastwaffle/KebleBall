@@ -1,8 +1,10 @@
 Dear {{ user.forenames }},
 
-<p>Here is your ticket for entering Keble Ball 2017. This email or a printout of it
+<p>Here is your ticket for entering Keble Ball 2019. This email or a printout of it
 containing the QR code below must be shown at the door in order to gain admittance
-on the night of the ball.</p>
+on the night of the ball. A copy of the code is also available on the dashboard of the ticketing portal.</p>
+
+<p>We strongly recommend you either print off, or take a screenshot of the QR code below as we cannot guarantee that wifi/mobile data will be available as you are entering the ball.</p>
 
 <img src="cid:image" width="500" height="500">
 
